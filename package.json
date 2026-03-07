@@ -4,8 +4,11 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "start:clear": "expo start -c",
+    "android": "expo start --android",
+    "android:build": "expo run:android",
+    "ios": "expo start --ios",
+    "ios:build": "open -a Simulator && expo run:ios",
     "web": "expo start --web",
     "xcode": "bash scripts/build-ios.sh",
     "xcode:release": "bash scripts/build-ios-release.sh"
