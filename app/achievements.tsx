@@ -2,18 +2,20 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
 import { formatAchievementDate } from '../src/constants/achievements';
 
 export default function AchievementsScreen() {
+  const insets = useSafeAreaInsets();
   const { achievements } = usePlayerStore();
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
   return (
     <LinearGradient
       colors={[COLORS.background, COLORS.backgroundLight, COLORS.background]}
-      style={styles.container}
+      style={[styles.container, { paddingTop: insets.top }]}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -80,7 +82,6 @@ export default function AchievementsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
   header: {
     flexDirection: 'row',

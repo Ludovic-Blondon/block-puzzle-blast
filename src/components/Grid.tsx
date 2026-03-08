@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, Dimensions, LayoutChangeEvent } from 'react-native';
+import { View, StyleSheet, Dimensions, LayoutChangeEvent, Pressable } from 'react-native';
 import { GRID_SIZE, CELL_GAP } from '../constants/config';
 import { COLORS } from '../utils/colors';
 import { Grid as GridType } from '../game/engine';
@@ -13,6 +13,7 @@ interface GridProps {
   clearingCols?: number[];
   onLayout?: (event: LayoutChangeEvent) => void;
   gridSize?: number;
+  onCellPress?: (row: number, col: number) => void;
 }
 
 export default function Grid({
@@ -23,6 +24,7 @@ export default function Grid({
   clearingCols = [],
   onLayout,
   gridSize: externalGridSize,
+  onCellPress,
 }: GridProps) {
   const screenWidth = Dimensions.get('window').width;
   const gridContainerSize = externalGridSize || screenWidth - 32;
@@ -54,6 +56,20 @@ export default function Grid({
             const isGhost = ghostSet.has(key);
             const isClearing =
               clearingRows.includes(rowIndex) || clearingCols.includes(colIndex);
+
+            if (onCellPress) {
+              return (
+                <Pressable key={key} onPress={() => onCellPress(rowIndex, colIndex)}>
+                  <Cell
+                    colorIndex={isGhost && cell === 0 ? 0 : cell}
+                    size={cellSize}
+                    isGhost={isGhost && cell === 0}
+                    isGhostValid={ghostValid}
+                    isClearing={isClearing && cell !== 0}
+                  />
+                </Pressable>
+              );
+            }
 
             return (
               <Cell

@@ -11,7 +11,8 @@
     "ios:build": "open -a Simulator && expo run:ios",
     "web": "expo start --web",
     "xcode": "bash scripts/build-ios.sh",
-    "xcode:release": "bash scripts/build-ios-release.sh"
+    "xcode:release": "bash scripts/build-ios-release.sh",
+    "ios:device": "npx expo prebuild --clean --platform ios && npx expo run:ios --device --configuration Release"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

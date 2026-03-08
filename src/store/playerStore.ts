@@ -17,6 +17,8 @@ interface PlayerState {
   gamesPlayed: number;
   totalLinesCleared: number;
   lastDailyReward: string | null;
+  dailyRewardsClaimed: number;
+  maxComboLines: number;
   powerUps: Record<PowerUpType, number>;
   achievements: Achievement[];
   loaded: boolean;
@@ -33,6 +35,7 @@ interface PlayerState {
   canClaimDailyReward: () => boolean;
   buyPowerUp: (type: PowerUpType) => boolean;
   usePowerUp: (type: PowerUpType) => boolean;
+  updateMaxComboLines: (linesCleared: number) => void;
   checkAchievements: () => void;
 }
 
@@ -59,6 +62,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   gamesPlayed: 0,
   totalLinesCleared: 0,
   lastDailyReward: null,
+  dailyRewardsClaimed: 0,
+  maxComboLines: 0,
   powerUps: { bomb: 0, clearLine: 0, rotate: 0 },
   achievements: DEFAULT_ACHIEVEMENTS,
   loaded: false,
@@ -74,6 +79,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           gamesPlayed: parsed.gamesPlayed ?? 0,
           totalLinesCleared: parsed.totalLinesCleared ?? 0,
           lastDailyReward: parsed.lastDailyReward ?? null,
+          dailyRewardsClaimed: parsed.dailyRewardsClaimed ?? 0,
+          maxComboLines: parsed.maxComboLines ?? 0,
           powerUps: parsed.powerUps ?? { bomb: 0, clearLine: 0, rotate: 0 },
           achievements: parsed.achievements ?? DEFAULT_ACHIEVEMENTS,
           loaded: true,
@@ -87,11 +94,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   saveData: async () => {
-    const { coins, bestScore, gamesPlayed, totalLinesCleared, lastDailyReward, powerUps, achievements } = get();
+    const { coins, bestScore, gamesPlayed, totalLinesCleared, lastDailyReward, dailyRewardsClaimed, maxComboLines, powerUps, achievements } = get();
     try {
       await AsyncStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ coins, bestScore, gamesPlayed, totalLinesCleared, lastDailyReward, powerUps, achievements })
+        JSON.stringify({ coins, bestScore, gamesPlayed, totalLinesCleared, lastDailyReward, dailyRewardsClaimed, maxComboLines, powerUps, achievements })
       );
     } catch {
       // Silent fail
@@ -100,7 +107,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   addCoins: (amount) => {
     set((state) => ({ coins: state.coins + amount }));
-    get().saveData();
     get().checkAchievements();
   },
 
@@ -116,20 +122,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { bestScore } = get();
     if (score > bestScore) {
       set({ bestScore: score });
-      get().saveData();
     }
     get().checkAchievements();
   },
 
   incrementGamesPlayed: () => {
     set((state) => ({ gamesPlayed: state.gamesPlayed + 1 }));
-    get().saveData();
     get().checkAchievements();
   },
 
   addLinesCleared: (lines) => {
     set((state) => ({ totalLinesCleared: state.totalLinesCleared + lines }));
-    get().saveData();
     get().checkAchievements();
   },
 
@@ -146,8 +149,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set((state) => ({
       coins: state.coins + DAILY_REWARD_COINS,
       lastDailyReward: today,
+      dailyRewardsClaimed: state.dailyRewardsClaimed + 1,
     }));
-    get().saveData();
+    get().checkAchievements();
     return true;
   },
 
@@ -177,16 +181,23 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     return true;
   },
 
+  updateMaxComboLines: (linesCleared) => {
+    const { maxComboLines } = get();
+    if (linesCleared > maxComboLines) {
+      set({ maxComboLines: linesCleared });
+      get().checkAchievements();
+    }
+  },
+
   checkAchievements: () => {
     const state = get();
     const achievements = [...state.achievements];
     let changed = false;
 
     const unlock = (id: string) => {
-      const a = achievements.find((x) => x.id === id);
-      if (a && !a.unlocked) {
-        a.unlocked = true;
-        a.unlockedAt = Date.now();
+      const idx = achievements.findIndex((x) => x.id === id);
+      if (idx !== -1 && !achievements[idx].unlocked) {
+        achievements[idx] = { ...achievements[idx], unlocked: true, unlockedAt: Date.now() };
         changed = true;
       }
     };
@@ -200,10 +211,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (state.gamesPlayed >= 10) unlock('games_10');
     if (state.gamesPlayed >= 50) unlock('games_50');
     if (state.coins >= 500) unlock('coins_500');
+    if (state.maxComboLines >= 2) unlock('first_combo');
+    if (state.maxComboLines >= 3) unlock('triple_combo');
+    if (state.dailyRewardsClaimed >= 3) unlock('daily_3');
 
     if (changed) {
       set({ achievements });
-      get().saveData();
     }
+    get().saveData();
   },
 }));

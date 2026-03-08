@@ -116,13 +116,3 @@ export function getPieceWidth(piece: PieceShape): number {
 export function getPieceHeight(piece: PieceShape): number {
   return piece.shape.length;
 }
-
-export function getPieceCellCount(piece: PieceShape): number {
-  let count = 0;
-  for (const row of piece.shape) {
-    for (const cell of row) {
-      if (cell) count++;
-    }
-  }
-  return count;
-}

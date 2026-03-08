@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, Pressable, Text } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useGameStore, GamePiece } from '../src/store/gameStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useGameStore } from '../src/store/gameStore';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
 import { GRID_SIZE, CELL_GAP } from '../src/constants/config';
@@ -16,12 +17,13 @@ import GameOverModal from '../src/components/GameOverModal';
 import PowerUpBar from '../src/components/PowerUpBar';
 import { hapticSuccess, hapticError, hapticHeavy } from '../src/utils/haptics';
 import { PowerUpType } from '../src/constants/config';
-import { applyBomb, applyClearRow } from '../src/game/powerups';
 
 const screenWidth = Dimensions.get('window').width;
 const GRID_CONTAINER_SIZE = screenWidth - 32;
 
 export default function GameScreen() {
+  const insets = useSafeAreaInsets();
+
   const {
     grid,
     currentPieces,
@@ -32,6 +34,9 @@ export default function GameScreen() {
     lastScoreResult,
     startNewGame,
     tryPlacePiece,
+    applyBombToGrid,
+    applyClearLineToGrid,
+    rotatePieceInTray,
   } = useGameStore();
 
   const {
@@ -43,6 +48,7 @@ export default function GameScreen() {
     incrementGamesPlayed,
     addLinesCleared,
     usePowerUp,
+    updateMaxComboLines,
   } = usePlayerStore();
 
   const [ghostCells, setGhostCells] = useState<{ row: number; col: number }[]>([]);
@@ -71,10 +77,11 @@ export default function GameScreen() {
     }
   }, [lastScoreResult]);
 
-  // Track lines cleared
+  // Track lines cleared + max combo
   useEffect(() => {
     if (lastClearResult && lastClearResult.linesCleared > 0) {
       addLinesCleared(lastClearResult.linesCleared);
+      updateMaxComboLines(lastClearResult.linesCleared);
       hapticSuccess();
     }
   }, [lastClearResult]);
@@ -192,10 +199,39 @@ export default function GameScreen() {
     }
   };
 
+  const handleGridCellPress = useCallback(
+    (row: number, col: number) => {
+      if (activePowerUp === 'bomb') {
+        if (usePowerUp('bomb')) {
+          applyBombToGrid(row, col);
+          setActivePowerUp(null);
+        }
+      } else if (activePowerUp === 'clearLine') {
+        if (usePowerUp('clearLine')) {
+          applyClearLineToGrid(row);
+          setActivePowerUp(null);
+        }
+      }
+    },
+    [activePowerUp, usePowerUp, applyBombToGrid, applyClearLineToGrid]
+  );
+
+  const handlePieceTap = useCallback(
+    (pieceIndex: number) => {
+      if (activePowerUp === 'rotate') {
+        if (usePowerUp('rotate')) {
+          rotatePieceInTray(pieceIndex);
+          setActivePowerUp(null);
+        }
+      }
+    },
+    [activePowerUp, usePowerUp, rotatePieceInTray]
+  );
+
   return (
     <LinearGradient
       colors={[COLORS.background, COLORS.backgroundLight, COLORS.background]}
-      style={styles.container}
+      style={[styles.container, { paddingTop: insets.top }]}
     >
       {/* Back button */}
       <View style={styles.topBar}>
@@ -217,6 +253,7 @@ export default function GameScreen() {
           clearingCols={lastClearResult?.clearedCols}
           onLayout={handleGridLayout}
           gridSize={GRID_CONTAINER_SIZE}
+          onCellPress={activePowerUp === 'bomb' || activePowerUp === 'clearLine' ? handleGridCellPress : undefined}
         />
 
         {/* Combo popup */}
@@ -241,6 +278,7 @@ export default function GameScreen() {
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
+        onPieceTap={activePowerUp === 'rotate' ? handlePieceTap : undefined}
       />
 
       {/* Game Over Modal */}
@@ -260,7 +298,6 @@ export default function GameScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
   topBar: {
     flexDirection: 'row',

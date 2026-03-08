@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
 import { PowerUpType, POWERUP_COSTS } from '../src/constants/config';
@@ -34,6 +35,7 @@ const SHOP_ITEMS: {
 ];
 
 export default function ShopScreen() {
+  const insets = useSafeAreaInsets();
   const { coins, powerUps, buyPowerUp } = usePlayerStore();
 
   const handleBuy = (type: PowerUpType) => {
@@ -49,7 +51,7 @@ export default function ShopScreen() {
   return (
     <LinearGradient
       colors={[COLORS.background, COLORS.backgroundLight, COLORS.background]}
-      style={styles.container}
+      style={[styles.container, { paddingTop: insets.top }]}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -101,7 +103,6 @@ export default function ShopScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
   header: {
     flexDirection: 'row',

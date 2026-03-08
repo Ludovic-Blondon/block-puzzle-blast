@@ -11,6 +11,7 @@ import {
 import { PieceShape, getRandomPieces } from '../game/pieces';
 import { calculateScore, ScoreResult } from '../game/scoring';
 import { BLOCK_COLORS } from '../utils/colors';
+import { applyBomb, applyClearRow, rotatePiece } from '../game/powerups';
 
 export interface GamePiece {
   piece: PieceShape;
@@ -31,6 +32,9 @@ interface GameState {
   startNewGame: () => void;
   tryPlacePiece: (pieceIndex: number, row: number, col: number) => boolean;
   checkGameOver: () => void;
+  applyBombToGrid: (row: number, col: number) => void;
+  applyClearLineToGrid: (row: number) => void;
+  rotatePieceInTray: (pieceIndex: number) => void;
 }
 
 function generateNewPieces(): GamePiece[] {
@@ -116,5 +120,30 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (remainingPieces.length > 0 && isGameOver(grid, remainingPieces)) {
       set({ isGameOver: true });
     }
+  },
+
+  applyBombToGrid: (row, col) => {
+    const { grid } = get();
+    const newGrid = applyBomb(grid, row, col);
+    set({ grid: newGrid });
+    setTimeout(() => get().checkGameOver(), 0);
+  },
+
+  applyClearLineToGrid: (row) => {
+    const { grid } = get();
+    const newGrid = applyClearRow(grid, row);
+    set({ grid: newGrid });
+    setTimeout(() => get().checkGameOver(), 0);
+  },
+
+  rotatePieceInTray: (pieceIndex) => {
+    const { currentPieces } = get();
+    const gamePiece = currentPieces[pieceIndex];
+    if (!gamePiece) return;
+    const rotatedPiece = rotatePiece(gamePiece.piece);
+    const newPieces = [...currentPieces];
+    newPieces[pieceIndex] = { ...gamePiece, piece: rotatedPiece };
+    set({ currentPieces: newPieces });
+    setTimeout(() => get().checkGameOver(), 0);
   },
 }));

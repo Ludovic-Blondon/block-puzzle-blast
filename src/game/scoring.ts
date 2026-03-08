@@ -33,7 +33,7 @@ export function calculateScore(
   const comboMultiplier = COMBO_MULTIPLIER_BASE + (linesCleared - 1) * 0.5;
 
   // Streak bonus: consecutive moves that clear lines
-  const streakMultiplier = 1 + currentStreak * 0.1;
+  const streakMultiplier = 1 + currentStreak * (STREAK_BONUS / 100);
 
   const isCombo = linesCleared >= 2;
   const points = Math.floor(baseScore * comboMultiplier * streakMultiplier);

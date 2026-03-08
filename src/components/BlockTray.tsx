@@ -10,9 +10,11 @@ interface BlockTrayProps {
   onDragMove?: (pieceIndex: number, x: number, y: number) => void;
   onDragEnd?: (pieceIndex: number, x: number, y: number) => void;
   onDragCancel?: (pieceIndex: number) => void;
+  onPieceTap?: (pieceIndex: number) => void;
 }
 
 const TRAY_PIECE_SIZE = 18;
+const TAP_THRESHOLD = 5;
 
 function DraggablePiece({
   gamePiece,
@@ -21,6 +23,7 @@ function DraggablePiece({
   onDragMove,
   onDragEnd,
   onDragCancel,
+  onPieceTap,
 }: {
   gamePiece: GamePiece;
   index: number;
@@ -28,9 +31,22 @@ function DraggablePiece({
   onDragMove?: (pieceIndex: number, x: number, y: number) => void;
   onDragEnd?: (pieceIndex: number, x: number, y: number) => void;
   onDragCancel?: (pieceIndex: number) => void;
+  onPieceTap?: (pieceIndex: number) => void;
 }) {
   const pan = useRef(new Animated.ValueXY()).current;
   const scale = useRef(new Animated.Value(1)).current;
+
+  // Store callbacks in refs to avoid stale closures in PanResponder
+  const onDragStartRef = useRef(onDragStart);
+  onDragStartRef.current = onDragStart;
+  const onDragMoveRef = useRef(onDragMove);
+  onDragMoveRef.current = onDragMove;
+  const onDragEndRef = useRef(onDragEnd);
+  onDragEndRef.current = onDragEnd;
+  const onDragCancelRef = useRef(onDragCancel);
+  onDragCancelRef.current = onDragCancel;
+  const onPieceTapRef = useRef(onPieceTap);
+  onPieceTapRef.current = onPieceTap;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -40,22 +56,27 @@ function DraggablePiece({
         hapticLight();
         Animated.spring(scale, { toValue: 1.2, useNativeDriver: true }).start();
         pan.setValue({ x: 0, y: -80 });
-        onDragStart?.(index);
+        onDragStartRef.current?.(index);
       },
       onPanResponderMove: (evt, gestureState) => {
         pan.setValue({ x: gestureState.dx, y: gestureState.dy - 80 });
-        onDragMove?.(index, evt.nativeEvent.pageX, evt.nativeEvent.pageY - 80);
+        onDragMoveRef.current?.(index, evt.nativeEvent.pageX, evt.nativeEvent.pageY - 80);
       },
       onPanResponderRelease: (evt, gestureState) => {
         hapticMedium();
         Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
         Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: true }).start();
-        onDragEnd?.(index, evt.nativeEvent.pageX, evt.nativeEvent.pageY - 80);
+
+        if (Math.abs(gestureState.dx) < TAP_THRESHOLD && Math.abs(gestureState.dy) < TAP_THRESHOLD && onPieceTapRef.current) {
+          onPieceTapRef.current(index);
+        } else {
+          onDragEndRef.current?.(index, evt.nativeEvent.pageX, evt.nativeEvent.pageY - 80);
+        }
       },
       onPanResponderTerminate: () => {
         Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
         Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: true }).start();
-        onDragCancel?.(index);
+        onDragCancelRef.current?.(index);
       },
     })
   ).current;
@@ -89,6 +110,7 @@ export default function BlockTray({
   onDragMove,
   onDragEnd,
   onDragCancel,
+  onPieceTap,
 }: BlockTrayProps) {
   return (
     <View style={styles.tray}>
@@ -106,6 +128,7 @@ export default function BlockTray({
             onDragMove={onDragMove}
             onDragEnd={onDragEnd}
             onDragCancel={onDragCancel}
+            onPieceTap={onPieceTap}
           />
         );
       })}

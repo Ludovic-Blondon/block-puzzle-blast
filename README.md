@@ -61,7 +61,17 @@ npx expo start -c
 - **Android Emulator**: press `a` in the terminal
 - **Physical device**: scan the QR code with Expo Go
 
-### Building for production
+### Install release build on iPhone via USB
+
+Connect your iPhone by cable then run:
+
+```bash
+npm run ios:device
+```
+
+This cleans any previous native build, regenerates the `ios/` folder, builds a release configuration, and installs directly on your device. On first run you may need to configure signing in Xcode (**Signing & Capabilities → Automatically manage signing**) and trust the developer certificate on your iPhone (**Settings → General → VPN & Device Management**).
+
+### Building for production (EAS)
 
 ```bash
 # Install EAS CLI
@@ -92,6 +102,17 @@ game-app/
 │   └── constants/          # Config and achievements
 └── assets/                 # Icons, splash screen
 ```
+
+## Roadmap
+
+- [ ] Sound effects (place, clear, combo, game over) via `expo-av`
+- [ ] Unit tests for game logic (engine, scoring, power-ups)
+- [ ] Animations on power-up activation (bomb explosion, line sweep, rotation)
+- [ ] Leaderboard (local or online)
+- [ ] Theming / color palette selector
+- [ ] Accessibility (VoiceOver labels, reduced motion support)
+- [ ] Localization (FR, EN)
+- [ ] Android: test and polish on physical devices
 
 ## License
 
