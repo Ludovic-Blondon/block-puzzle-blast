@@ -14,12 +14,14 @@ export default function DailyReward({ visible, onClaim }: DailyRewardProps) {
   useEffect(() => {
     if (visible) {
       slideAnim.setValue(300);
-      Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 15 }).start();
+      const animation = Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 15 });
+      animation.start();
+      return () => animation.stop();
     }
   }, [visible]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClaim}>
       <View style={styles.overlay}>
         <Animated.View style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.emoji}>🎁</Text>
@@ -31,7 +33,7 @@ export default function DailyReward({ visible, onClaim }: DailyRewardProps) {
             <Text style={styles.coinLabel}>coins</Text>
           </View>
 
-          <Pressable style={styles.claimButton} onPress={onClaim}>
+          <Pressable style={styles.claimButton} onPress={onClaim} accessibilityRole="button" accessibilityLabel={`Claim ${DAILY_REWARD_COINS} coins daily reward`}>
             <Text style={styles.claimButtonText}>CLAIM</Text>
           </Pressable>
         </Animated.View>

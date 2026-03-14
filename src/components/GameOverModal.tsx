@@ -28,15 +28,17 @@ export default function GameOverModal({
     if (visible) {
       slideAnim.setValue(300);
       fadeAnim.setValue(0);
-      Animated.parallel([
+      const animation = Animated.parallel([
         Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 15 }),
         Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-      ]).start();
+      ]);
+      animation.start();
+      return () => animation.stop();
     }
   }, [visible]);
 
   return (
-    <Modal visible={visible} transparent animationType="none">
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onGoHome}>
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
         <Animated.View style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.title}>GAME OVER</Text>
@@ -59,11 +61,11 @@ export default function GameOverModal({
             </View>
           </View>
 
-          <Pressable style={styles.playButton} onPress={onPlayAgain}>
+          <Pressable style={styles.playButton} onPress={onPlayAgain} accessibilityRole="button" accessibilityLabel="Play again">
             <Text style={styles.playButtonText}>PLAY AGAIN</Text>
           </Pressable>
 
-          <Pressable style={styles.homeButton} onPress={onGoHome}>
+          <Pressable style={styles.homeButton} onPress={onGoHome} accessibilityRole="button" accessibilityLabel="Go to home screen">
             <Text style={styles.homeButtonText}>HOME</Text>
           </Pressable>
         </Animated.View>

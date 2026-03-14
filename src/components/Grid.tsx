@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, StyleSheet, Dimensions, LayoutChangeEvent, Pressable } from 'react-native';
+import React, { useMemo, forwardRef } from 'react';
+import { View, StyleSheet, LayoutChangeEvent, Pressable, useWindowDimensions } from 'react-native';
 import { GRID_SIZE, CELL_GAP } from '../constants/config';
 import { COLORS } from '../utils/colors';
 import { Grid as GridType } from '../game/engine';
@@ -16,7 +16,7 @@ interface GridProps {
   onCellPress?: (row: number, col: number) => void;
 }
 
-export default function Grid({
+const Grid = forwardRef<View, GridProps>(function Grid({
   grid,
   ghostCells = [],
   ghostValid = false,
@@ -25,8 +25,8 @@ export default function Grid({
   onLayout,
   gridSize: externalGridSize,
   onCellPress,
-}: GridProps) {
-  const screenWidth = Dimensions.get('window').width;
+}, ref) {
+  const { width: screenWidth } = useWindowDimensions();
   const gridContainerSize = externalGridSize || screenWidth - 32;
   const cellSize = (gridContainerSize - CELL_GAP * (GRID_SIZE + 1)) / GRID_SIZE;
 
@@ -40,6 +40,7 @@ export default function Grid({
 
   return (
     <View
+      ref={ref}
       style={[
         styles.grid,
         {
@@ -86,7 +87,9 @@ export default function Grid({
       ))}
     </View>
   );
-}
+});
+
+export default Grid;
 
 const styles = StyleSheet.create({
   grid: {

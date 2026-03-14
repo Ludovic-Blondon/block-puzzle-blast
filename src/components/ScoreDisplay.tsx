@@ -8,7 +8,7 @@ interface ScoreDisplayProps {
   coins: number;
 }
 
-export default function ScoreDisplay({ score, bestScore, coins }: ScoreDisplayProps) {
+function ScoreDisplay({ score, bestScore, coins }: ScoreDisplayProps) {
   const scoreScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -37,6 +37,8 @@ export default function ScoreDisplay({ score, bestScore, coins }: ScoreDisplayPr
     </View>
   );
 }
+
+export default React.memo(ScoreDisplay);
 
 const styles = StyleSheet.create({
   container: {

@@ -95,17 +95,17 @@ export default function HomeScreen() {
       </Animated.View>
 
       <Animated.View style={[styles.buttonContainer, fadeSlideUp(buttonsAnim)]}>
-        <Pressable style={styles.playButton} onPress={handlePlay}>
+        <Pressable style={styles.playButton} onPress={handlePlay} accessibilityRole="button" accessibilityLabel="Play game">
           <Text style={styles.playButtonText}>PLAY</Text>
         </Pressable>
 
         <View style={styles.secondaryButtons}>
-          <Pressable style={styles.secondaryButton} onPress={handleShop}>
+          <Pressable style={styles.secondaryButton} onPress={handleShop} accessibilityRole="button" accessibilityLabel="Open shop">
             <Text style={styles.secondaryIcon}>🛒</Text>
             <Text style={styles.secondaryText}>SHOP</Text>
           </Pressable>
 
-          <Pressable style={styles.secondaryButton} onPress={handleAchievements}>
+          <Pressable style={styles.secondaryButton} onPress={handleAchievements} accessibilityRole="button" accessibilityLabel="View achievements">
             <Text style={styles.secondaryIcon}>🏆</Text>
             <Text style={styles.secondaryText}>ACHIEVEMENTS</Text>
           </Pressable>

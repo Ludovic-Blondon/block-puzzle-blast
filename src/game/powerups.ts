@@ -16,6 +16,7 @@ export function applyBomb(grid: Grid, centerRow: number, centerCol: number): Gri
 }
 
 export function applyClearRow(grid: Grid, row: number): Grid {
+  if (row < 0 || row >= GRID_SIZE) return grid;
   const newGrid = grid.map((r) => [...r]);
   for (let c = 0; c < GRID_SIZE; c++) {
     newGrid[row][c] = 0;
@@ -24,6 +25,7 @@ export function applyClearRow(grid: Grid, row: number): Grid {
 }
 
 export function applyClearColumn(grid: Grid, col: number): Grid {
+  if (col < 0 || col >= GRID_SIZE) return grid;
   const newGrid = grid.map((r) => [...r]);
   for (let r = 0; r < GRID_SIZE; r++) {
     newGrid[r][col] = 0;

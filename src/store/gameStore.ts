@@ -46,6 +46,9 @@ function generateNewPieces(): GamePiece[] {
   }));
 }
 
+// Lock to prevent concurrent tryPlacePiece calls from corrupting the grid
+let placementLock = false;
+
 export const useGameStore = create<GameState>((set, get) => ({
   grid: createEmptyGrid(),
   currentPieces: generateNewPieces(),
@@ -68,47 +71,54 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   tryPlacePiece: (pieceIndex: number, row: number, col: number) => {
-    const { grid, currentPieces, score, streak } = get();
-    const gamePiece = currentPieces[pieceIndex];
-    if (!gamePiece || gamePiece.placed) return false;
+    if (placementLock) return false;
+    placementLock = true;
 
-    if (!canPlacePiece(grid, gamePiece.piece, row, col)) return false;
+    try {
+      const { grid, currentPieces, score, streak } = get();
+      const gamePiece = currentPieces[pieceIndex];
+      if (!gamePiece || gamePiece.placed) return false;
 
-    // Place the piece
-    const newGrid = placePiece(grid, gamePiece.piece, row, col, gamePiece.colorIndex);
+      if (!canPlacePiece(grid, gamePiece.piece, row, col)) return false;
 
-    // Check for completed lines
-    const clearResult = clearLines(newGrid);
+      // Place the piece
+      const newGrid = placePiece(grid, gamePiece.piece, row, col, gamePiece.colorIndex);
 
-    // Calculate score
-    const newStreak = clearResult.linesCleared > 0 ? streak + 1 : 0;
-    const scoreResult = calculateScore(
-      clearResult.linesCleared,
-      clearResult.cellsCleared,
-      newStreak
-    );
+      // Check for completed lines
+      const clearResult = clearLines(newGrid);
 
-    // Mark piece as placed
-    const newPieces = [...currentPieces];
-    newPieces[pieceIndex] = null;
+      // Calculate score
+      const newStreak = clearResult.linesCleared > 0 ? streak + 1 : 0;
+      const scoreResult = calculateScore(
+        clearResult.linesCleared,
+        clearResult.cellsCleared,
+        newStreak
+      );
 
-    // Check if all pieces are placed -> generate new ones
-    const allPlaced = newPieces.every((p) => p === null);
-    const finalPieces = allPlaced ? generateNewPieces() : newPieces;
+      // Mark piece as placed
+      const newPieces = [...currentPieces];
+      newPieces[pieceIndex] = null;
 
-    set({
-      grid: clearResult.grid,
-      currentPieces: finalPieces,
-      score: score + scoreResult.points,
-      streak: newStreak,
-      lastClearResult: clearResult,
-      lastScoreResult: scoreResult,
-    });
+      // Check if all pieces are placed -> generate new ones
+      const allPlaced = newPieces.every((p) => p === null);
+      const finalPieces = allPlaced ? generateNewPieces() : newPieces;
 
-    // Check game over after state update
-    setTimeout(() => get().checkGameOver(), 0);
+      set({
+        grid: clearResult.grid,
+        currentPieces: finalPieces,
+        score: score + scoreResult.points,
+        streak: newStreak,
+        lastClearResult: clearResult,
+        lastScoreResult: scoreResult,
+      });
 
-    return true;
+      // Check game over after state update
+      queueMicrotask(() => get().checkGameOver());
+
+      return true;
+    } finally {
+      placementLock = false;
+    }
   },
 
   checkGameOver: () => {
@@ -126,14 +136,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { grid } = get();
     const newGrid = applyBomb(grid, row, col);
     set({ grid: newGrid });
-    setTimeout(() => get().checkGameOver(), 0);
+    queueMicrotask(() => get().checkGameOver());
   },
 
   applyClearLineToGrid: (row) => {
     const { grid } = get();
     const newGrid = applyClearRow(grid, row);
     set({ grid: newGrid });
-    setTimeout(() => get().checkGameOver(), 0);
+    queueMicrotask(() => get().checkGameOver());
   },
 
   rotatePieceInTray: (pieceIndex) => {
@@ -144,6 +154,5 @@ export const useGameStore = create<GameState>((set, get) => ({
     const newPieces = [...currentPieces];
     newPieces[pieceIndex] = { ...gamePiece, piece: rotatedPiece };
     set({ currentPieces: newPieces });
-    setTimeout(() => get().checkGameOver(), 0);
   },
 }));

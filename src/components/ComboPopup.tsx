@@ -24,7 +24,7 @@ export default function ComboPopup({ linesCleared, streak }: ComboPopupProps) {
     opacity.setValue(0);
     translateY.setValue(0);
 
-    Animated.parallel([
+    const animation = Animated.parallel([
       Animated.sequence([
         Animated.spring(scale, { toValue: 1.5, useNativeDriver: true, speed: 30, bounciness: 15 }),
         Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20 }),
@@ -39,7 +39,9 @@ export default function ComboPopup({ linesCleared, streak }: ComboPopupProps) {
         Animated.delay(800),
         Animated.timing(translateY, { toValue: -60, duration: 300, useNativeDriver: true }),
       ]),
-    ]).start();
+    ]);
+    animation.start();
+    return () => animation.stop();
   }, [displayText, linesCleared, streak]);
 
   if (!displayText) return null;

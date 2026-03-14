@@ -10,7 +10,7 @@ interface CellProps {
   isClearing?: boolean;
 }
 
-export default function Cell({ colorIndex, size, isGhost, isGhostValid, isClearing }: CellProps) {
+function Cell({ colorIndex, size, isGhost, isGhostValid, isClearing }: CellProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
@@ -25,11 +25,17 @@ export default function Cell({ colorIndex, size, isGhost, isGhostValid, isCleari
 
   useEffect(() => {
     if (isClearing) {
-      Animated.sequence([
+      const scaleComposite = Animated.sequence([
         Animated.spring(scaleAnim, { toValue: 1.2, useNativeDriver: true, speed: 50 }),
         Animated.timing(scaleAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      ]).start();
-      Animated.timing(opacityAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
+      ]);
+      const opacityComposite = Animated.timing(opacityAnim, { toValue: 0, duration: 300, useNativeDriver: true });
+      scaleComposite.start();
+      opacityComposite.start();
+      return () => {
+        scaleComposite.stop();
+        opacityComposite.stop();
+      };
     } else {
       scaleAnim.setValue(1);
       opacityAnim.setValue(1);
@@ -53,6 +59,8 @@ export default function Cell({ colorIndex, size, isGhost, isGhostValid, isCleari
     />
   );
 }
+
+export default React.memo(Cell);
 
 const styles = StyleSheet.create({
   cell: {

@@ -41,6 +41,16 @@ interface PlayerState {
 
 const STORAGE_KEY = 'block_puzzle_blast_player';
 
+// Debounced save to avoid race conditions on rapid AsyncStorage writes
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+function debouncedSave(saveFn: () => Promise<void>) {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    saveFn();
+    saveTimeout = null;
+  }, 300);
+}
+
 const DEFAULT_ACHIEVEMENTS: Achievement[] = [
   { id: 'first_game', name: 'First Steps', description: 'Play your first game', unlocked: false },
   { id: 'score_1000', name: 'Getting Warmed Up', description: 'Score 1,000 points', unlocked: false },
@@ -114,7 +124,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { coins } = get();
     if (coins < amount) return false;
     set({ coins: coins - amount });
-    get().saveData();
+    debouncedSave(() => get().saveData());
     return true;
   },
 
@@ -139,13 +149,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   canClaimDailyReward: () => {
     const { lastDailyReward } = get();
     if (!lastDailyReward) return true;
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     return lastDailyReward !== today;
   },
 
   claimDailyReward: () => {
     if (!get().canClaimDailyReward()) return false;
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     set((state) => ({
       coins: state.coins + DAILY_REWARD_COINS,
       lastDailyReward: today,
@@ -164,7 +176,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         [type]: state.powerUps[type] + 1,
       },
     }));
-    get().saveData();
+    debouncedSave(() => get().saveData());
     return true;
   },
 
@@ -177,7 +189,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         [type]: state.powerUps[type] - 1,
       },
     }));
-    get().saveData();
+    debouncedSave(() => get().saveData());
     return true;
   },
 
@@ -218,6 +230,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (changed) {
       set({ achievements });
     }
-    get().saveData();
+    debouncedSave(() => get().saveData());
   },
 }));

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, Pressable, Text } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, Pressable, Text } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,10 +18,9 @@ import PowerUpBar from '../src/components/PowerUpBar';
 import { hapticSuccess, hapticError, hapticHeavy } from '../src/utils/haptics';
 import { PowerUpType } from '../src/constants/config';
 
-const screenWidth = Dimensions.get('window').width;
-const GRID_CONTAINER_SIZE = screenWidth - 32;
-
 export default function GameScreen() {
+  const { width: screenWidth } = useWindowDimensions();
+  const gridContainerSize = screenWidth - 32;
   const insets = useSafeAreaInsets();
 
   const {
@@ -58,6 +57,7 @@ export default function GameScreen() {
   const [gameStarted, setGameStarted] = useState(false);
 
   const gridRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
+  const gridViewRef = useRef<View>(null);
 
   // Start game on mount
   useEffect(() => {
@@ -170,16 +170,13 @@ export default function GameScreen() {
     setGhostValid(false);
   }, []);
 
-  const handleGridLayout = useCallback(
-    (event: any) => {
-      event.target.measureInWindow(
-        (x: number, y: number, width: number, height: number) => {
-          gridRef.current = { x, y, width, height };
-        }
-      );
-    },
-    []
-  );
+  const handleGridLayout = useCallback(() => {
+    gridViewRef.current?.measureInWindow(
+      (x: number, y: number, width: number, height: number) => {
+        gridRef.current = { x, y, width, height };
+      }
+    );
+  }, []);
 
   const handlePlayAgain = () => {
     startNewGame();
@@ -235,7 +232,7 @@ export default function GameScreen() {
     >
       {/* Back button */}
       <View style={styles.topBar}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close game">
           <Text style={styles.backText}>✕</Text>
         </Pressable>
       </View>
@@ -246,13 +243,14 @@ export default function GameScreen() {
       {/* Grid */}
       <View style={styles.gridWrapper}>
         <Grid
+          ref={gridViewRef}
           grid={grid}
           ghostCells={ghostCells}
           ghostValid={ghostValid}
           clearingRows={lastClearResult?.clearedRows}
           clearingCols={lastClearResult?.clearedCols}
           onLayout={handleGridLayout}
-          gridSize={GRID_CONTAINER_SIZE}
+          gridSize={gridContainerSize}
           onCellPress={activePowerUp === 'bomb' || activePowerUp === 'clearLine' ? handleGridCellPress : undefined}
         />
 

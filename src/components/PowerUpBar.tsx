@@ -15,7 +15,7 @@ const POWERUP_INFO: Record<PowerUpType, { icon: string; label: string }> = {
   rotate: { icon: '🔄', label: 'Rotate' },
 };
 
-export default function PowerUpBar({ powerUps, activePowerUp, onSelect }: PowerUpBarProps) {
+function PowerUpBar({ powerUps, activePowerUp, onSelect }: PowerUpBarProps) {
   return (
     <View style={styles.container}>
       {(Object.keys(POWERUP_INFO) as PowerUpType[]).map((type) => {
@@ -29,6 +29,9 @@ export default function PowerUpBar({ powerUps, activePowerUp, onSelect }: PowerU
             style={[styles.button, isActive && styles.activeButton, count === 0 && styles.disabledButton]}
             onPress={() => count > 0 && onSelect(type)}
             disabled={count === 0}
+            accessibilityRole="button"
+            accessibilityLabel={`${info.label}, ${count} remaining`}
+            accessibilityState={{ selected: isActive, disabled: count === 0 }}
           >
             <Text style={styles.icon}>{info.icon}</Text>
             <Text style={[styles.label, count === 0 && styles.disabledLabel]}>
@@ -43,6 +46,8 @@ export default function PowerUpBar({ powerUps, activePowerUp, onSelect }: PowerU
     </View>
   );
 }
+
+export default React.memo(PowerUpBar);
 
 const styles = StyleSheet.create({
   container: {

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, StyleSheet, PanResponder, Animated } from 'react-native';
+import { View, StyleSheet, PanResponder, Animated, PixelRatio } from 'react-native';
 import { GamePiece } from '../store/gameStore';
 import BlockPiece from './BlockPiece';
 import { hapticLight, hapticMedium } from '../utils/haptics';
@@ -14,7 +14,7 @@ interface BlockTrayProps {
 }
 
 const TRAY_PIECE_SIZE = 18;
-const TAP_THRESHOLD = 5;
+const TAP_THRESHOLD = 5 * PixelRatio.get();
 
 function DraggablePiece({
   gamePiece,
@@ -35,6 +35,8 @@ function DraggablePiece({
 }) {
   const pan = useRef(new Animated.ValueXY()).current;
   const scale = useRef(new Animated.Value(1)).current;
+  const pieceViewRef = useRef<View>(null);
+  const dragOffsetY = useRef(0);
 
   // Store callbacks in refs to avoid stale closures in PanResponder
   const onDragStartRef = useRef(onDragStart);
@@ -54,13 +56,19 @@ function DraggablePiece({
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (evt) => {
         hapticLight();
+        // Measure piece height dynamically for the Y offset
+        pieceViewRef.current?.measureInWindow((_x, _y, _w, h) => {
+          dragOffsetY.current = -(h || 80);
+        });
+        const offset = dragOffsetY.current || -80;
         Animated.spring(scale, { toValue: 1.2, useNativeDriver: true }).start();
-        pan.setValue({ x: 0, y: -80 });
+        pan.setValue({ x: 0, y: offset });
         onDragStartRef.current?.(index);
       },
       onPanResponderMove: (evt, gestureState) => {
-        pan.setValue({ x: gestureState.dx, y: gestureState.dy - 80 });
-        onDragMoveRef.current?.(index, evt.nativeEvent.pageX, evt.nativeEvent.pageY - 80);
+        const offset = dragOffsetY.current || -80;
+        pan.setValue({ x: gestureState.dx, y: gestureState.dy + offset });
+        onDragMoveRef.current?.(index, evt.nativeEvent.pageX, evt.nativeEvent.pageY + offset);
       },
       onPanResponderRelease: (evt, gestureState) => {
         hapticMedium();
@@ -70,7 +78,8 @@ function DraggablePiece({
         if (Math.abs(gestureState.dx) < TAP_THRESHOLD && Math.abs(gestureState.dy) < TAP_THRESHOLD && onPieceTapRef.current) {
           onPieceTapRef.current(index);
         } else {
-          onDragEndRef.current?.(index, evt.nativeEvent.pageX, evt.nativeEvent.pageY - 80);
+          const offset = dragOffsetY.current || -80;
+          onDragEndRef.current?.(index, evt.nativeEvent.pageX, evt.nativeEvent.pageY + offset);
         }
       },
       onPanResponderTerminate: () => {
@@ -83,6 +92,7 @@ function DraggablePiece({
 
   return (
     <Animated.View
+      ref={pieceViewRef}
       style={[
         styles.pieceContainer,
         {

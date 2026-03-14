@@ -10,7 +10,7 @@ interface BlockPieceProps {
   opacity?: number;
 }
 
-export default function BlockPiece({
+function BlockPiece({
   piece,
   colorIndex,
   cellSize = 20,
@@ -42,6 +42,8 @@ export default function BlockPiece({
     </View>
   );
 }
+
+export default React.memo(BlockPiece);
 
 const styles = StyleSheet.create({
   piece: {
