@@ -5,9 +5,9 @@
   "scripts": {
     "start": "expo start",
     "start:clear": "expo start -c",
-    "android": "expo start --android",
+    "android": "expo run:android",
     "android:build": "expo run:android",
-    "ios": "expo start --ios",
+    "ios": "expo run:ios",
     "ios:build": "open -a Simulator && expo run:ios",
     "web": "expo start --web",
     "xcode": "bash scripts/build-ios.sh",

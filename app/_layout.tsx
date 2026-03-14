@@ -33,7 +33,9 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: COLORS.background },
             animation: 'slide_from_right',
           }}
-        />
+        >
+          <Stack.Screen name="game" options={{ gestureEnabled: false }} />
+        </Stack>
       </View>
     </ErrorBoundary>
   );
