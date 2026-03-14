@@ -26,8 +26,8 @@ Block Puzzle Blast is a strategic puzzle game where you place blocks on a 10x10 
 
 - **React Native** + **Expo SDK 55**
 - **expo-router** — file-based navigation
-- **react-native-gesture-handler** — drag & drop
-- **react-native-reanimated** — 60fps animations
+- **PanResponder** — drag & drop (RN core)
+- **Animated** — 60fps animations (RN core)
 - **zustand** — state management
 - **AsyncStorage** — local data persistence
 - **expo-haptics** — tactile feedback
@@ -57,8 +57,8 @@ npx expo start -c
 
 ### Running on device
 
-- **iOS Simulator**: press `i` in the terminal
-- **Android Emulator**: press `a` in the terminal
+- **iOS Simulator**: `npm run start:clear` then press `i`
+- **Android Emulator**: `npm run start:clear` then press `a`
 - **Physical device**: scan the QR code with Expo Go
 
 ### Install release build on iPhone via USB
