@@ -24,7 +24,7 @@ Block Puzzle Blast is a strategic puzzle game where you place blocks on a 10x10 
 
 ## Tech Stack
 
-- **React Native** + **Expo SDK 54**
+- **React Native** + **Expo SDK 55**
 - **expo-router** — file-based navigation
 - **react-native-gesture-handler** — drag & drop
 - **react-native-reanimated** — 60fps animations
