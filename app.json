@@ -7,11 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "block-puzzle-blast",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1a1a2e"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.blockpuzzleblast.app",
@@ -34,7 +29,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1a1a2e",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200
+        }
+      ]
     ],
     "extra": {
       "router": {},

@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
 import ErrorBoundary from '../src/components/ErrorBoundary';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const loadData = usePlayerStore((s) => s.loadData);
@@ -14,14 +17,13 @@ export default function RootLayout() {
     loadData();
   }, []);
 
-  if (!loaded) {
-    return (
-      <View style={styles.loading}>
-        <StatusBar style="light" />
-        <ActivityIndicator size="large" color={COLORS.accent} />
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!loaded) return null;
 
   return (
     <ErrorBoundary>
@@ -45,11 +47,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  loading: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
