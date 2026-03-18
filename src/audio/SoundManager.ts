@@ -11,14 +11,14 @@ type SoundName =
   | 'levelUp';
 
 const SOUND_ASSETS: Record<SoundName, number> = {
-  place: require('../../assets/sounds/place.mp3'),
-  lineClear: require('../../assets/sounds/line_clear.mp3'),
-  combo: require('../../assets/sounds/combo.mp3'),
-  gameOver: require('../../assets/sounds/game_over.mp3'),
-  buttonTap: require('../../assets/sounds/button_tap.mp3'),
-  powerUp: require('../../assets/sounds/power_up.mp3'),
-  achievement: require('../../assets/sounds/achievement.mp3'),
-  levelUp: require('../../assets/sounds/level_up.mp3'),
+  place: require('../../assets/sounds/place.wav'),
+  lineClear: require('../../assets/sounds/line_clear.wav'),
+  combo: require('../../assets/sounds/combo.wav'),
+  gameOver: require('../../assets/sounds/game_over.wav'),
+  buttonTap: require('../../assets/sounds/button_tap.wav'),
+  powerUp: require('../../assets/sounds/power_up.wav'),
+  achievement: require('../../assets/sounds/achievement.wav'),
+  levelUp: require('../../assets/sounds/level_up.wav'),
 };
 
 const VOLUMES: Partial<Record<SoundName, number>> = {
@@ -36,7 +36,7 @@ class SoundManager {
     if (this.initialized) return;
     try {
       await setAudioModeAsync({
-        playsInSilentMode: false,
+        playsInSilentMode: true,
       });
       this.initialized = true;
     } catch {
