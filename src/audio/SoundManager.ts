@@ -8,14 +8,46 @@ type SoundName =
   | 'achievement'
   | 'levelUp';
 
+const SOUND_ASSETS: Record<SoundName, any> = {
+  place: require('../../assets/sounds/place.mp3'),
+  lineClear: require('../../assets/sounds/line_clear.mp3'),
+  combo: require('../../assets/sounds/combo.mp3'),
+  gameOver: require('../../assets/sounds/game_over.mp3'),
+  buttonTap: require('../../assets/sounds/button_tap.mp3'),
+  powerUp: require('../../assets/sounds/power_up.mp3'),
+  achievement: require('../../assets/sounds/achievement.mp3'),
+  levelUp: require('../../assets/sounds/level_up.mp3'),
+};
+
+const VOLUMES: Partial<Record<SoundName, number>> = {
+  combo: 0.8,
+  achievement: 0.8,
+  levelUp: 0.8,
+  buttonTap: 0.3,
+};
+
 class SoundManager {
+  private Audio: any = null;
   private enabled = true;
   private initialized = false;
 
   async init() {
-    // Audio disabled until a dev build with expo-av native module is available.
-    // In Expo Go, ExponentAV native module does not exist.
-    this.initialized = false;
+    if (this.initialized) return;
+    try {
+      // Dynamic import so the app doesn't crash in Expo Go
+      // where the native module ExponentAV is not available
+      const mod = require('expo-av');
+      this.Audio = mod.Audio;
+      await this.Audio.setAudioModeAsync({
+        playsInSilentModeIOS: false,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: true,
+      });
+      this.initialized = true;
+    } catch {
+      // expo-av native module not available (Expo Go) — audio disabled
+      this.initialized = false;
+    }
   }
 
   setEnabled(enabled: boolean) {
@@ -26,8 +58,25 @@ class SoundManager {
     return this.enabled;
   }
 
-  async play(_name: SoundName) {
-    // No-op until expo-av native module is available in a dev build
+  async play(name: SoundName) {
+    if (!this.enabled || !this.initialized || !this.Audio) return;
+
+    try {
+      const source = SOUND_ASSETS[name];
+      if (!source) return;
+
+      const { sound } = await this.Audio.Sound.createAsync(
+        source,
+        { shouldPlay: true, volume: VOLUMES[name] ?? 0.5 }
+      );
+      sound.setOnPlaybackStatusUpdate((status: any) => {
+        if (status.didJustFinish) {
+          sound.unloadAsync();
+        }
+      });
+    } catch {
+      // Silently fail
+    }
   }
 }
 
