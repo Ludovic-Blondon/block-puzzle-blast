@@ -1,25 +1,38 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
+import { MODE_CONFIGS, GameMode } from '../src/constants/config';
 import DailyReward from '../src/components/DailyReward';
+import XPBar from '../src/components/XPBar';
+import MissionPanel from '../src/components/MissionPanel';
 import { hapticMedium } from '../src/utils/haptics';
 
+const MODES: GameMode[] = ['classic', 'blitz', 'zen', 'daily'];
+
 export default function HomeScreen() {
-  const { bestScore, coins, loaded, canClaimDailyReward, claimDailyReward } = usePlayerStore();
+  const insets = useSafeAreaInsets();
+  const {
+    bestScore,
+    coins,
+    xp,
+    loaded,
+    canClaimDailyReward,
+    claimDailyReward,
+    hasCompletedTutorial,
+  } = usePlayerStore();
   const [showDailyReward, setShowDailyReward] = useState(false);
 
   const headerAnim = useRef(new Animated.Value(0)).current;
-  const statsAnim = useRef(new Animated.Value(0)).current;
-  const buttonsAnim = useRef(new Animated.Value(0)).current;
+  const contentAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.stagger(200, [
       Animated.spring(headerAnim, { toValue: 1, useNativeDriver: true }),
-      Animated.spring(statsAnim, { toValue: 1, useNativeDriver: true }),
-      Animated.spring(buttonsAnim, { toValue: 1, useNativeDriver: true }),
+      Animated.spring(contentAnim, { toValue: 1, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -29,9 +42,19 @@ export default function HomeScreen() {
     }
   }, [loaded]);
 
-  const handlePlay = () => {
+  // Auto-redirect to tutorial on first launch
+  useEffect(() => {
+    if (loaded && !hasCompletedTutorial) {
+      router.push('/tutorial');
+    }
+  }, [loaded, hasCompletedTutorial]);
+
+  const handlePlayMode = (mode: GameMode) => {
     hapticMedium();
-    router.push('/game');
+    if (mode === 'classic') router.push('/game');
+    else if (mode === 'blitz') router.push('/blitz');
+    else if (mode === 'zen') router.push('/zen');
+    else if (mode === 'daily') router.push('/daily');
   };
 
   const handleShop = () => {
@@ -42,6 +65,11 @@ export default function HomeScreen() {
   const handleAchievements = () => {
     hapticMedium();
     router.push('/achievements');
+  };
+
+  const handleLeaderboard = () => {
+    hapticMedium();
+    router.push('/leaderboard');
   };
 
   const handleClaimDailyReward = () => {
@@ -61,56 +89,77 @@ export default function HomeScreen() {
     ],
   });
 
-  const fadeSlideUp = (anim: Animated.Value) => ({
-    opacity: anim,
-    transform: [
-      {
-        translateY: anim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [30, 0],
-        }),
-      },
-    ],
-  });
-
   return (
     <LinearGradient
       colors={[COLORS.background, COLORS.backgroundLight, COLORS.background]}
-      style={styles.container}
+      style={[styles.container, { paddingTop: insets.top }]}
     >
-      <Animated.View style={[styles.header, fadeSlideDown(headerAnim)]}>
-        <Text style={styles.title}>BLOCK</Text>
-        <Text style={styles.titleAccent}>PUZZLE BLAST</Text>
-      </Animated.View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View style={[styles.header, fadeSlideDown(headerAnim)]}>
+          <Text style={styles.title}>BLOCK</Text>
+          <Text style={styles.titleAccent}>PUZZLE BLAST</Text>
+        </Animated.View>
 
-      <Animated.View style={[styles.statsContainer, fadeSlideDown(statsAnim)]}>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>BEST SCORE</Text>
-          <Text style={styles.statValue}>{bestScore.toLocaleString()}</Text>
+        {/* XP Bar */}
+        <XPBar xp={xp} />
+
+        {/* Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>BEST</Text>
+            <Text style={styles.statValue}>{bestScore.toLocaleString()}</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>COINS</Text>
+            <Text style={[styles.statValue, styles.coinsText]}>{coins}</Text>
+          </View>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>COINS</Text>
-          <Text style={[styles.statValue, styles.coinsText]}>{coins}</Text>
-        </View>
-      </Animated.View>
 
-      <Animated.View style={[styles.buttonContainer, fadeSlideUp(buttonsAnim)]}>
-        <Pressable style={styles.playButton} onPress={handlePlay} accessibilityRole="button" accessibilityLabel="Play game">
-          <Text style={styles.playButtonText}>PLAY</Text>
-        </Pressable>
+        {/* Game mode grid */}
+        <Animated.View style={[styles.modeGrid, fadeSlideDown(contentAnim)]}>
+          {MODES.map((mode) => {
+            const config = MODE_CONFIGS[mode];
+            return (
+              <Pressable
+                key={mode}
+                style={[styles.modeCard, { borderColor: config.color }]}
+                onPress={() => handlePlayMode(mode)}
+                accessibilityRole="button"
+                accessibilityLabel={`Play ${config.name} mode`}
+              >
+                <Text style={styles.modeIcon}>{config.icon}</Text>
+                <Text style={[styles.modeName, { color: config.color }]}>{config.name}</Text>
+                <Text style={styles.modeDesc}>{config.description}</Text>
+              </Pressable>
+            );
+          })}
+        </Animated.View>
 
-        <View style={styles.secondaryButtons}>
-          <Pressable style={styles.secondaryButton} onPress={handleShop} accessibilityRole="button" accessibilityLabel="Open shop">
-            <Text style={styles.secondaryIcon}>🛒</Text>
-            <Text style={styles.secondaryText}>SHOP</Text>
+        {/* Missions */}
+        <MissionPanel />
+
+        {/* Bottom buttons */}
+        <View style={styles.bottomButtons}>
+          <Pressable style={styles.navButton} onPress={handleShop} accessibilityRole="button" accessibilityLabel="Open shop">
+            <Text style={styles.navIcon}>🛒</Text>
+            <Text style={styles.navText}>SHOP</Text>
           </Pressable>
 
-          <Pressable style={styles.secondaryButton} onPress={handleAchievements} accessibilityRole="button" accessibilityLabel="View achievements">
-            <Text style={styles.secondaryIcon}>🏆</Text>
-            <Text style={styles.secondaryText}>ACHIEVEMENTS</Text>
+          <Pressable style={styles.navButton} onPress={handleAchievements} accessibilityRole="button" accessibilityLabel="View achievements">
+            <Text style={styles.navIcon}>🏆</Text>
+            <Text style={styles.navText}>ACHIEVEMENTS</Text>
+          </Pressable>
+
+          <Pressable style={styles.navButton} onPress={handleLeaderboard} accessibilityRole="button" accessibilityLabel="View leaderboard">
+            <Text style={styles.navIcon}>📊</Text>
+            <Text style={styles.navText}>SCORES</Text>
           </Pressable>
         </View>
-      </Animated.View>
+      </ScrollView>
 
       <DailyReward visible={showDailyReward} onClaim={handleClaimDailyReward} />
     </LinearGradient>
@@ -120,22 +169,27 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingBottom: 40,
+    paddingTop: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 56,
+    fontSize: 48,
     fontWeight: '900',
     color: COLORS.text,
     letterSpacing: 8,
   },
   titleAccent: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
     color: COLORS.accent,
     letterSpacing: 4,
@@ -143,75 +197,82 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    gap: 24,
-    marginBottom: 48,
+    gap: 16,
+    marginBottom: 20,
   },
   statBox: {
     alignItems: 'center',
     backgroundColor: COLORS.surface,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 16,
-    minWidth: 120,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 14,
+    minWidth: 110,
   },
   statLabel: {
     color: COLORS.textMuted,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
   },
   statValue: {
     color: COLORS.text,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
-    marginTop: 4,
+    marginTop: 2,
   },
   coinsText: {
     color: COLORS.accentGold,
   },
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  playButton: {
-    backgroundColor: COLORS.accent,
-    paddingHorizontal: 64,
-    paddingVertical: 20,
-    borderRadius: 20,
-    width: '80%',
-    alignItems: 'center',
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  playButtonText: {
-    color: COLORS.text,
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: 4,
-  },
-  secondaryButtons: {
+  modeGrid: {
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 24,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 24,
+    marginBottom: 20,
   },
-  secondaryButton: {
+  modeCard: {
+    width: '45%',
     backgroundColor: COLORS.surface,
-    paddingHorizontal: 20,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  modeIcon: {
+    fontSize: 32,
+    marginBottom: 6,
+  },
+  modeName: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  modeDesc: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  bottomButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 24,
+  },
+  navButton: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
     paddingVertical: 12,
     borderRadius: 14,
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
-  secondaryIcon: {
-    fontSize: 18,
+  navIcon: {
+    fontSize: 20,
   },
-  secondaryText: {
+  navText: {
     color: COLORS.textSecondary,
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
   },

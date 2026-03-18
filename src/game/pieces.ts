@@ -109,6 +109,25 @@ export function getRandomPieces(count: number): PieceShape[] {
   return pieces;
 }
 
+// Seeded random for daily challenges (deterministic for same seed+index)
+function seededRandom(seed: string, index: number): number {
+  let hash = 0;
+  const str = seed + '-' + index;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash) / 2147483647;
+}
+
+export function getSeededRandomPieces(seed: string, setIndex: number, count: number): PieceShape[] {
+  const pieces: PieceShape[] = [];
+  for (let i = 0; i < count; i++) {
+    const rand = seededRandom(seed, setIndex * 10 + i);
+    pieces.push(PIECES[Math.floor(rand * PIECES.length)]);
+  }
+  return pieces;
+}
+
 export function getPieceWidth(piece: PieceShape): number {
   return piece.shape[0].length;
 }

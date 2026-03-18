@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, Animated } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, Animated, Platform } from 'react-native';
 import { COLORS } from '../utils/colors';
+import * as Sharing from 'expo-sharing';
 
 interface GameOverModalProps {
   visible: boolean;
@@ -8,8 +9,10 @@ interface GameOverModalProps {
   bestScore: number;
   isNewBest: boolean;
   coinsEarned: number;
+  modeName?: string;
   onPlayAgain: () => void;
   onGoHome: () => void;
+  onShare?: () => void;
 }
 
 export default function GameOverModal({
@@ -18,8 +21,10 @@ export default function GameOverModal({
   bestScore,
   isNewBest,
   coinsEarned,
+  modeName = 'Classic',
   onPlayAgain,
   onGoHome,
+  onShare,
 }: GameOverModalProps) {
   const slideAnim = useRef(new Animated.Value(300)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -37,11 +42,26 @@ export default function GameOverModal({
     }
   }, [visible]);
 
+  const handleShare = async () => {
+    try {
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) return;
+
+      // Generate a shareable text for now (image gen can be added later with view-shot)
+      if (onShare) {
+        onShare();
+      }
+    } catch {
+      // Sharing not available
+    }
+  };
+
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onGoHome}>
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
         <Animated.View style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.title}>GAME OVER</Text>
+          {modeName !== 'Classic' && <Text style={styles.modeLabel}>{modeName}</Text>}
 
           {isNewBest && <Text style={styles.newBest}>NEW BEST!</Text>}
 
@@ -65,9 +85,14 @@ export default function GameOverModal({
             <Text style={styles.playButtonText}>PLAY AGAIN</Text>
           </Pressable>
 
-          <Pressable style={styles.homeButton} onPress={onGoHome} accessibilityRole="button" accessibilityLabel="Go to home screen">
-            <Text style={styles.homeButtonText}>HOME</Text>
-          </Pressable>
+          <View style={styles.bottomButtons}>
+            <Pressable style={styles.secondaryButton} onPress={handleShare}>
+              <Text style={styles.secondaryButtonText}>SHARE</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryButton} onPress={onGoHome}>
+              <Text style={styles.secondaryButtonText}>HOME</Text>
+            </Pressable>
+          </View>
         </Animated.View>
       </Animated.View>
     </Modal>
@@ -95,6 +120,13 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: COLORS.text,
     letterSpacing: 2,
+  },
+  modeLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    marginTop: 4,
+    letterSpacing: 1,
   },
   newBest: {
     fontSize: 18,
@@ -152,11 +184,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
   },
-  homeButton: {
+  bottomButtons: {
+    flexDirection: 'row',
+    gap: 16,
     marginTop: 12,
-    paddingVertical: 12,
   },
-  homeButtonText: {
+  secondaryButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  secondaryButtonText: {
     color: COLORS.textSecondary,
     fontSize: 14,
     fontWeight: '700',

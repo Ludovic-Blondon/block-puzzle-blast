@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGameStore } from '../src/store/gameStore';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
-import { GRID_SIZE, CELL_GAP } from '../src/constants/config';
+import { GRID_SIZE, CELL_GAP, LEVEL_THRESHOLD, getLevelForXP } from '../src/constants/config';
 import { getPieceHeight, getPieceWidth } from '../src/game/pieces';
 import { canPlacePiece } from '../src/game/engine';
 import Grid from '../src/components/Grid';
@@ -15,8 +15,13 @@ import ScoreDisplay from '../src/components/ScoreDisplay';
 import ComboPopup from '../src/components/ComboPopup';
 import GameOverModal from '../src/components/GameOverModal';
 import PowerUpBar from '../src/components/PowerUpBar';
+import ScreenShake from '../src/components/effects/ScreenShake';
+import ScoreFlyUp from '../src/components/effects/ScoreFlyUp';
+import LevelUpBanner from '../src/components/effects/LevelUpBanner';
+import AchievementToast from '../src/components/effects/AchievementToast';
 import { hapticSuccess, hapticError, hapticHeavy } from '../src/utils/haptics';
 import { PowerUpType } from '../src/constants/config';
+import { soundManager } from '../src/audio/SoundManager';
 
 export default function GameScreen() {
   const { width: screenWidth } = useWindowDimensions();
@@ -31,6 +36,8 @@ export default function GameScreen() {
     isGameOver,
     lastClearResult,
     lastScoreResult,
+    level,
+    lastLevel,
     startNewGame,
     tryPlacePiece,
     applyBombToGrid,
@@ -42,12 +49,22 @@ export default function GameScreen() {
     coins,
     bestScore,
     powerUps,
+    xp,
+    pendingAchievementToast,
     addCoins,
     updateBestScore,
     incrementGamesPlayed,
     addLinesCleared,
     usePowerUp,
     updateMaxComboLines,
+    updateMaxStreak,
+    addScoreXP,
+    addScoreAccumulated,
+    incrementPiecesPlaced,
+    incrementComboCount,
+    addLeaderboardEntry,
+    dismissAchievementToast,
+    saveData,
   } = usePlayerStore();
 
   const [ghostCells, setGhostCells] = useState<{ row: number; col: number }[]>([]);
@@ -56,41 +73,88 @@ export default function GameScreen() {
   const [totalCoinsEarned, setTotalCoinsEarned] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
 
+  // Effects triggers
+  const [shakeTrigger, setShakeTrigger] = useState(0);
+  const [scoreFlyTrigger, setScoreFlyTrigger] = useState(0);
+  const [lastPoints, setLastPoints] = useState(0);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpLevel, setLevelUpLevel] = useState(1);
+
   const gridRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
   const gridViewRef = useRef<View>(null);
 
   // Start game on mount
   useEffect(() => {
     if (!gameStarted) {
-      startNewGame();
+      startNewGame('classic');
       incrementGamesPlayed();
       setGameStarted(true);
       setTotalCoinsEarned(0);
     }
   }, []);
 
-  // Track coins earned
+  // Track coins earned & score XP
   useEffect(() => {
     if (lastScoreResult && lastScoreResult.coinsEarned > 0) {
       addCoins(lastScoreResult.coinsEarned);
       setTotalCoinsEarned((prev) => prev + lastScoreResult.coinsEarned);
     }
+    if (lastScoreResult && lastScoreResult.points > 0) {
+      addScoreAccumulated(lastScoreResult.points);
+      setLastPoints(lastScoreResult.points);
+      setScoreFlyTrigger((t) => t + 1);
+      soundManager.play('place');
+    }
   }, [lastScoreResult]);
 
-  // Track lines cleared + max combo
+  // Track lines cleared + combos
   useEffect(() => {
     if (lastClearResult && lastClearResult.linesCleared > 0) {
       addLinesCleared(lastClearResult.linesCleared);
       updateMaxComboLines(lastClearResult.linesCleared);
       hapticSuccess();
+      soundManager.play('lineClear');
+
+      if (lastClearResult.linesCleared >= 2) {
+        incrementComboCount();
+        soundManager.play('combo');
+        setShakeTrigger((t) => t + 1);
+      }
     }
   }, [lastClearResult]);
+
+  // Track streak
+  useEffect(() => {
+    if (streak > 0) {
+      updateMaxStreak(streak);
+    }
+  }, [streak]);
+
+  // Piece placed tracking
+  useEffect(() => {
+    if (lastScoreResult) {
+      incrementPiecesPlaced();
+    }
+  }, [lastScoreResult]);
+
+  // Level-up detection
+  useEffect(() => {
+    if (level > lastLevel) {
+      setLevelUpLevel(level);
+      setShowLevelUp(true);
+      soundManager.play('levelUp');
+    }
+  }, [level, lastLevel]);
 
   // Game over handling
   useEffect(() => {
     if (isGameOver) {
       hapticHeavy();
+      soundManager.play('gameOver');
       updateBestScore(score);
+      addScoreXP(score, 'classic');
+      addLeaderboardEntry(score, 'classic');
+      saveData();
     }
   }, [isGameOver]);
 
@@ -122,7 +186,6 @@ export default function GameScreen() {
         return;
       }
 
-      // Offset to center the piece on the finger
       const offsetRow = gridPos.row - Math.floor(getPieceHeight(gamePiece.piece) / 2);
       const offsetCol = gridPos.col - Math.floor(getPieceWidth(gamePiece.piece) / 2);
 
@@ -179,7 +242,7 @@ export default function GameScreen() {
   }, []);
 
   const handlePlayAgain = () => {
-    startNewGame();
+    startNewGame('classic');
     incrementGamesPlayed();
     setTotalCoinsEarned(0);
   };
@@ -202,11 +265,13 @@ export default function GameScreen() {
         if (usePowerUp('bomb')) {
           applyBombToGrid(row, col);
           setActivePowerUp(null);
+          soundManager.play('powerUp');
         }
       } else if (activePowerUp === 'clearLine') {
         if (usePowerUp('clearLine')) {
           applyClearLineToGrid(row);
           setActivePowerUp(null);
+          soundManager.play('powerUp');
         }
       }
     },
@@ -219,6 +284,7 @@ export default function GameScreen() {
         if (usePowerUp('rotate')) {
           rotatePieceInTray(pieceIndex);
           setActivePowerUp(null);
+          soundManager.play('powerUp');
         }
       }
     },
@@ -230,38 +296,63 @@ export default function GameScreen() {
       colors={[COLORS.background, COLORS.backgroundLight, COLORS.background]}
       style={[styles.container, { paddingTop: insets.top }]}
     >
-      {/* Back button */}
+      {/* Achievement toast */}
+      {pendingAchievementToast && (
+        <AchievementToast
+          name={pendingAchievementToast.name}
+          tier={pendingAchievementToast.tier}
+          visible={true}
+          onDone={dismissAchievementToast}
+        />
+      )}
+
+      {/* Level up banner */}
+      <LevelUpBanner
+        level={levelUpLevel}
+        visible={showLevelUp}
+        onDone={() => setShowLevelUp(false)}
+      />
+
+      {/* Top bar */}
       <View style={styles.topBar}>
         <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close game">
           <Text style={styles.backText}>✕</Text>
         </Pressable>
+        <View style={styles.levelBadge}>
+          <Text style={styles.levelText}>Lv.{level}</Text>
+        </View>
       </View>
 
       {/* Score */}
       <ScoreDisplay score={score} bestScore={bestScore} coins={coins} />
 
-      {/* Grid */}
-      <View style={styles.gridWrapper}>
-        <Grid
-          ref={gridViewRef}
-          grid={grid}
-          ghostCells={ghostCells}
-          ghostValid={ghostValid}
-          clearingRows={lastClearResult?.clearedRows}
-          clearingCols={lastClearResult?.clearedCols}
-          onLayout={handleGridLayout}
-          gridSize={gridContainerSize}
-          onCellPress={activePowerUp === 'bomb' || activePowerUp === 'clearLine' ? handleGridCellPress : undefined}
-        />
-
-        {/* Combo popup */}
-        {lastClearResult && lastClearResult.linesCleared >= 2 && (
-          <ComboPopup
-            linesCleared={lastClearResult.linesCleared}
-            streak={streak}
+      {/* Grid with effects */}
+      <ScreenShake trigger={shakeTrigger} intensity={lastClearResult && lastClearResult.linesCleared >= 3 ? 8 : 4}>
+        <View style={styles.gridWrapper}>
+          <Grid
+            ref={gridViewRef}
+            grid={grid}
+            ghostCells={ghostCells}
+            ghostValid={ghostValid}
+            clearingRows={lastClearResult?.clearedRows}
+            clearingCols={lastClearResult?.clearedCols}
+            onLayout={handleGridLayout}
+            gridSize={gridContainerSize}
+            onCellPress={activePowerUp === 'bomb' || activePowerUp === 'clearLine' ? handleGridCellPress : undefined}
           />
-        )}
-      </View>
+
+          {/* Score fly-up */}
+          <ScoreFlyUp points={lastPoints} trigger={scoreFlyTrigger} />
+
+          {/* Combo popup */}
+          {lastClearResult && lastClearResult.linesCleared >= 2 && (
+            <ComboPopup
+              linesCleared={lastClearResult.linesCleared}
+              streak={streak}
+            />
+          )}
+        </View>
+      </ScreenShake>
 
       {/* Power-ups */}
       <PowerUpBar
@@ -286,6 +377,7 @@ export default function GameScreen() {
         bestScore={Math.max(bestScore, score)}
         isNewBest={score > bestScore}
         coinsEarned={totalCoinsEarned}
+        modeName="Classic"
         onPlayAgain={handlePlayAgain}
         onGoHome={handleGoHome}
       />
@@ -299,6 +391,8 @@ const styles = StyleSheet.create({
   },
   topBar: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     marginBottom: 8,
   },
@@ -314,6 +408,17 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 18,
     fontWeight: '700',
+  },
+  levelBadge: {
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  levelText: {
+    color: COLORS.accentGold,
+    fontSize: 14,
+    fontWeight: '800',
   },
   gridWrapper: {
     position: 'relative',

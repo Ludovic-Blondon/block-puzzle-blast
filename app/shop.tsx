@@ -1,51 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
-import { PowerUpType, POWERUP_COSTS } from '../src/constants/config';
+import { PowerUpType, POWERUP_COSTS, getLevelForXP } from '../src/constants/config';
+import { THEMES } from '../src/constants/themes';
 import { hapticMedium, hapticSuccess, hapticError } from '../src/utils/haptics';
+import { soundManager } from '../src/audio/SoundManager';
 
-const SHOP_ITEMS: {
-  type: PowerUpType;
-  icon: string;
-  name: string;
-  description: string;
-}[] = [
-  {
-    type: 'bomb',
-    icon: '💣',
-    name: 'Bomb',
-    description: 'Clears a 3x3 area on the grid',
-  },
-  {
-    type: 'clearLine',
-    icon: '⚡',
-    name: 'Line Clear',
-    description: 'Clears an entire row',
-  },
-  {
-    type: 'rotate',
-    icon: '🔄',
-    name: 'Rotate',
-    description: 'Rotate a piece 90 degrees',
-  },
+const SHOP_ITEMS: { type: PowerUpType; icon: string; name: string; description: string }[] = [
+  { type: 'bomb', icon: '💣', name: 'Bomb', description: 'Clears a 3x3 area on the grid' },
+  { type: 'clearLine', icon: '⚡', name: 'Line Clear', description: 'Clears an entire row' },
+  { type: 'rotate', icon: '🔄', name: 'Rotate', description: 'Rotate a piece 90 degrees' },
 ];
+
+type ShopTab = 'powerups' | 'themes';
 
 export default function ShopScreen() {
   const insets = useSafeAreaInsets();
-  const { coins, powerUps, buyPowerUp } = usePlayerStore();
+  const { coins, xp, powerUps, ownedThemes, activeTheme, buyPowerUp, buyTheme, setActiveTheme } = usePlayerStore();
+  const [tab, setTab] = useState<ShopTab>('powerups');
+  const playerLevel = getLevelForXP(xp).level;
 
-  const handleBuy = (type: PowerUpType) => {
+  const handleBuyPowerUp = (type: PowerUpType) => {
     hapticMedium();
-    const success = buyPowerUp(type);
-    if (success) {
+    if (buyPowerUp(type)) {
       hapticSuccess();
+      soundManager.play('buttonTap');
     } else {
       hapticError();
     }
+  };
+
+  const handleBuyTheme = (themeId: string) => {
+    hapticMedium();
+    if (buyTheme(themeId)) {
+      hapticSuccess();
+      soundManager.play('achievement');
+    } else {
+      hapticError();
+    }
+  };
+
+  const handleSelectTheme = (themeId: string) => {
+    hapticMedium();
+    setActiveTheme(themeId);
   };
 
   return (
@@ -53,7 +54,6 @@ export default function ShopScreen() {
       colors={[COLORS.background, COLORS.backgroundLight, COLORS.background]}
       style={[styles.container, { paddingTop: insets.top }]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <Text style={styles.backText}>←</Text>
@@ -64,8 +64,24 @@ export default function ShopScreen() {
         </View>
       </View>
 
+      {/* Tabs */}
+      <View style={styles.tabs}>
+        <Pressable
+          style={[styles.tab, tab === 'powerups' && styles.tabActive]}
+          onPress={() => setTab('powerups')}
+        >
+          <Text style={[styles.tabText, tab === 'powerups' && styles.tabTextActive]}>Power-ups</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.tab, tab === 'themes' && styles.tabActive]}
+          onPress={() => setTab('themes')}
+        >
+          <Text style={[styles.tabText, tab === 'themes' && styles.tabTextActive]}>Themes</Text>
+        </Pressable>
+      </View>
+
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        {SHOP_ITEMS.map((item) => {
+        {tab === 'powerups' && SHOP_ITEMS.map((item) => {
           const cost = POWERUP_COSTS[item.type];
           const owned = powerUps[item.type];
           const canAfford = coins >= cost;
@@ -82,10 +98,9 @@ export default function ShopScreen() {
                   <Text style={styles.ownedText}>x{owned}</Text>
                 </View>
               </View>
-
               <Pressable
                 style={[styles.buyButton, !canAfford && styles.buyButtonDisabled]}
-                onPress={() => handleBuy(item.type)}
+                onPress={() => handleBuyPowerUp(item.type)}
                 disabled={!canAfford}
               >
                 <Text style={[styles.buyText, !canAfford && styles.buyTextDisabled]}>
@@ -95,112 +110,115 @@ export default function ShopScreen() {
             </View>
           );
         })}
+
+        {tab === 'themes' && THEMES.map((theme) => {
+          const owned = ownedThemes.includes(theme.id);
+          const isActive = activeTheme === theme.id;
+          const canAfford = coins >= theme.price;
+          const levelLocked = theme.unlockLevel != null && playerLevel < theme.unlockLevel;
+
+          return (
+            <View key={theme.id} style={styles.itemCard}>
+              <View style={styles.itemHeader}>
+                {/* Theme preview */}
+                <View style={styles.themePreview}>
+                  {theme.blockColors.slice(0, 4).map((color, i) => (
+                    <View key={i} style={[styles.previewBlock, { backgroundColor: color }]} />
+                  ))}
+                </View>
+                <View style={styles.itemInfo}>
+                  <Text style={styles.itemName}>{theme.name}</Text>
+                  {owned && isActive && <Text style={styles.activeLabel}>Active</Text>}
+                  {levelLocked && (
+                    <Text style={styles.lockText}>Requires Lv.{theme.unlockLevel}</Text>
+                  )}
+                </View>
+                {owned && (
+                  <View style={[styles.ownedBadge, isActive && styles.activeBadge]}>
+                    <Text style={styles.ownedText}>{isActive ? '✓' : 'Owned'}</Text>
+                  </View>
+                )}
+              </View>
+
+              {owned ? (
+                !isActive ? (
+                  <Pressable style={styles.selectButton} onPress={() => handleSelectTheme(theme.id)}>
+                    <Text style={styles.selectText}>USE</Text>
+                  </Pressable>
+                ) : null
+              ) : (
+                <Pressable
+                  style={[styles.buyButton, (!canAfford || levelLocked) && styles.buyButtonDisabled]}
+                  onPress={() => handleBuyTheme(theme.id)}
+                  disabled={!canAfford || !!levelLocked}
+                >
+                  <Text style={[styles.buyText, (!canAfford || levelLocked) && styles.buyTextDisabled]}>
+                    {theme.price === 0 ? 'FREE' : `${theme.price} coins`}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 24,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, marginBottom: 16,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.surface,
+    alignItems: 'center', justifyContent: 'center',
   },
-  backText: {
-    color: COLORS.textSecondary,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: COLORS.text,
-    letterSpacing: 3,
-  },
+  backText: { color: COLORS.textSecondary, fontSize: 18, fontWeight: '700' },
+  title: { fontSize: 24, fontWeight: '900', color: COLORS.text, letterSpacing: 3 },
   coinBox: {
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    backgroundColor: COLORS.surface, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12,
   },
-  coinText: {
-    color: COLORS.accentGold,
-    fontSize: 14,
-    fontWeight: '800',
+  coinText: { color: COLORS.accentGold, fontSize: 14, fontWeight: '800' },
+  tabs: {
+    flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 16,
   },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 16,
-    gap: 16,
-  },
-  itemCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 16,
-  },
-  itemHeader: {
-    flexDirection: 'row',
+  tab: {
+    flex: 1, paddingVertical: 10, borderRadius: 12, backgroundColor: COLORS.surface,
     alignItems: 'center',
-    marginBottom: 12,
   },
-  itemIcon: {
-    fontSize: 36,
-    marginRight: 12,
-  },
-  itemInfo: {
-    flex: 1,
-  },
-  itemName: {
-    color: COLORS.text,
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  itemDescription: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-    marginTop: 2,
-  },
+  tabActive: { backgroundColor: COLORS.accent },
+  tabText: { color: COLORS.textSecondary, fontSize: 14, fontWeight: '700' },
+  tabTextActive: { color: COLORS.text },
+  scrollView: { flex: 1 },
+  content: { padding: 16, gap: 16 },
+  itemCard: { backgroundColor: COLORS.surface, borderRadius: 16, padding: 16 },
+  itemHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  itemIcon: { fontSize: 36, marginRight: 12 },
+  itemInfo: { flex: 1 },
+  itemName: { color: COLORS.text, fontSize: 18, fontWeight: '800' },
+  itemDescription: { color: COLORS.textSecondary, fontSize: 13, marginTop: 2 },
+  activeLabel: { color: COLORS.success, fontSize: 12, fontWeight: '700', marginTop: 2 },
+  lockText: { color: COLORS.textMuted, fontSize: 12, fontWeight: '600', marginTop: 2 },
   ownedBadge: {
-    backgroundColor: COLORS.backgroundLight,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    backgroundColor: COLORS.backgroundLight, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
   },
-  ownedText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    fontWeight: '700',
-  },
+  activeBadge: { backgroundColor: COLORS.success },
+  ownedText: { color: COLORS.textSecondary, fontSize: 14, fontWeight: '700' },
   buyButton: {
-    backgroundColor: COLORS.accentGold,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
+    backgroundColor: COLORS.accentGold, paddingVertical: 12, borderRadius: 12, alignItems: 'center',
   },
-  buyButtonDisabled: {
-    backgroundColor: COLORS.gridLine,
+  buyButtonDisabled: { backgroundColor: COLORS.gridLine },
+  buyText: { color: COLORS.background, fontSize: 16, fontWeight: '800' },
+  buyTextDisabled: { color: COLORS.textMuted },
+  selectButton: {
+    backgroundColor: COLORS.accent, paddingVertical: 12, borderRadius: 12, alignItems: 'center',
   },
-  buyText: {
-    color: COLORS.background,
-    fontSize: 16,
-    fontWeight: '800',
+  selectText: { color: COLORS.text, fontSize: 16, fontWeight: '800' },
+  themePreview: {
+    flexDirection: 'row', flexWrap: 'wrap', width: 44, height: 44, borderRadius: 10,
+    overflow: 'hidden', marginRight: 12,
   },
-  buyTextDisabled: {
-    color: COLORS.textMuted,
-  },
+  previewBlock: { width: 22, height: 22 },
 });

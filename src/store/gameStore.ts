@@ -8,10 +8,11 @@ import {
   isGameOver,
   ClearResult,
 } from '../game/engine';
-import { PieceShape, getRandomPieces } from '../game/pieces';
+import { PieceShape, getRandomPieces, getSeededRandomPieces } from '../game/pieces';
 import { calculateScore, ScoreResult } from '../game/scoring';
 import { BLOCK_COLORS } from '../utils/colors';
 import { applyBomb, applyClearRow, rotatePiece } from '../game/powerups';
+import { GameMode, BLITZ_DURATION, BLITZ_COMBO_TIME_BONUS, LEVEL_THRESHOLD } from '../constants/config';
 
 export interface GamePiece {
   piece: PieceShape;
@@ -28,13 +29,35 @@ interface GameState {
   lastClearResult: ClearResult | null;
   lastScoreResult: ScoreResult | null;
 
+  // Game mode
+  mode: GameMode;
+
+  // Classic mode: levels
+  level: number;
+  lastLevel: number; // Track for level-up detection
+
+  // Blitz mode
+  timeRemaining: number;
+  timerRunning: boolean;
+
+  // Zen mode
+  zenLinesCleared: number;
+
+  // Daily challenge
+  dailySeed: string;
+  dailyMovesLeft: number;
+  dailyObjective: number;
+  dailyLinesCleared: number;
+
   // Actions
-  startNewGame: () => void;
+  startNewGame: (mode?: GameMode) => void;
   tryPlacePiece: (pieceIndex: number, row: number, col: number) => boolean;
   checkGameOver: () => void;
   applyBombToGrid: (row: number, col: number) => void;
   applyClearLineToGrid: (row: number) => void;
   rotatePieceInTray: (pieceIndex: number) => void;
+  tickTimer: () => void;
+  zenPartialClear: () => void;
 }
 
 function generateNewPieces(): GamePiece[] {
@@ -46,7 +69,21 @@ function generateNewPieces(): GamePiece[] {
   }));
 }
 
-// Lock to prevent concurrent tryPlacePiece calls from corrupting the grid
+function generateSeededPieces(seed: string, index: number): GamePiece[] {
+  const pieces = getSeededRandomPieces(seed, index, 3);
+  return pieces.map((piece) => ({
+    piece,
+    colorIndex: Math.floor(Math.random() * BLOCK_COLORS.length) + 1,
+    placed: false,
+  }));
+}
+
+function getDailySeed(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+// Lock to prevent concurrent tryPlacePiece calls
 let placementLock = false;
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -58,15 +95,42 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastClearResult: null,
   lastScoreResult: null,
 
-  startNewGame: () => {
+  mode: 'classic',
+  level: 1,
+  lastLevel: 1,
+
+  timeRemaining: BLITZ_DURATION,
+  timerRunning: false,
+
+  zenLinesCleared: 0,
+
+  dailySeed: getDailySeed(),
+  dailyMovesLeft: 15,
+  dailyObjective: 8,
+  dailyLinesCleared: 0,
+
+  startNewGame: (mode = 'classic') => {
+    const seed = getDailySeed();
+    const pieces = mode === 'daily' ? generateSeededPieces(seed, 0) : generateNewPieces();
+
     set({
       grid: createEmptyGrid(),
-      currentPieces: generateNewPieces(),
+      currentPieces: pieces,
       score: 0,
       streak: 0,
       isGameOver: false,
       lastClearResult: null,
       lastScoreResult: null,
+      mode,
+      level: 1,
+      lastLevel: 1,
+      timeRemaining: BLITZ_DURATION,
+      timerRunning: mode === 'blitz',
+      zenLinesCleared: 0,
+      dailySeed: seed,
+      dailyMovesLeft: 15,
+      dailyObjective: 8,
+      dailyLinesCleared: 0,
     });
   },
 
@@ -75,19 +139,18 @@ export const useGameStore = create<GameState>((set, get) => ({
     placementLock = true;
 
     try {
-      const { grid, currentPieces, score, streak } = get();
+      const { grid, currentPieces, score, streak, mode, dailyMovesLeft, dailyLinesCleared, dailySeed, zenLinesCleared } = get();
       const gamePiece = currentPieces[pieceIndex];
       if (!gamePiece || gamePiece.placed) return false;
 
+      // Daily: check moves remaining
+      if (mode === 'daily' && dailyMovesLeft <= 0) return false;
+
       if (!canPlacePiece(grid, gamePiece.piece, row, col)) return false;
 
-      // Place the piece
       const newGrid = placePiece(grid, gamePiece.piece, row, col, gamePiece.colorIndex);
-
-      // Check for completed lines
       const clearResult = clearLines(newGrid);
 
-      // Calculate score
       const newStreak = clearResult.linesCleared > 0 ? streak + 1 : 0;
       const scoreResult = calculateScore(
         clearResult.linesCleared,
@@ -99,18 +162,55 @@ export const useGameStore = create<GameState>((set, get) => ({
       const newPieces = [...currentPieces];
       newPieces[pieceIndex] = null;
 
-      // Check if all pieces are placed -> generate new ones
+      // Check if all pieces placed -> generate new ones
       const allPlaced = newPieces.every((p) => p === null);
-      const finalPieces = allPlaced ? generateNewPieces() : newPieces;
+      let finalPieces: (GamePiece | null)[];
+      if (allPlaced) {
+        if (mode === 'daily') {
+          // Generate seeded pieces for consistency
+          const pieceSetIndex = Math.floor(score / 100) + 1;
+          finalPieces = generateSeededPieces(dailySeed, pieceSetIndex);
+        } else {
+          finalPieces = generateNewPieces();
+        }
+      } else {
+        finalPieces = newPieces;
+      }
 
-      set({
+      // Calculate level for classic mode
+      const newScore = score + scoreResult.points;
+      const newLevel = Math.floor(newScore / LEVEL_THRESHOLD) + 1;
+
+      // Blitz: add time bonus for combos
+      let timeBonus = 0;
+      if (mode === 'blitz' && clearResult.linesCleared >= 2) {
+        timeBonus = BLITZ_COMBO_TIME_BONUS;
+      }
+
+      const updates: Partial<GameState> = {
         grid: clearResult.grid,
         currentPieces: finalPieces,
-        score: score + scoreResult.points,
+        score: newScore,
         streak: newStreak,
         lastClearResult: clearResult,
         lastScoreResult: scoreResult,
-      });
+        level: newLevel,
+      };
+
+      if (mode === 'blitz' && timeBonus > 0) {
+        updates.timeRemaining = get().timeRemaining + timeBonus;
+      }
+
+      if (mode === 'daily') {
+        updates.dailyMovesLeft = dailyMovesLeft - 1;
+        updates.dailyLinesCleared = dailyLinesCleared + clearResult.linesCleared;
+      }
+
+      if (mode === 'zen') {
+        updates.zenLinesCleared = zenLinesCleared + clearResult.linesCleared;
+      }
+
+      set(updates as any);
 
       // Check game over after state update
       queueMicrotask(() => get().checkGameOver());
@@ -122,13 +222,40 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   checkGameOver: () => {
-    const { grid, currentPieces } = get();
+    const { grid, currentPieces, mode, dailyMovesLeft, dailyObjective, dailyLinesCleared, timeRemaining } = get();
+
+    // Zen mode: never game over from pieces, do partial clear instead
+    if (mode === 'zen') {
+      const remainingPieces = currentPieces
+        .filter((p): p is GamePiece => p !== null)
+        .map((p) => p.piece);
+      if (remainingPieces.length > 0 && isGameOver(grid, remainingPieces)) {
+        get().zenPartialClear();
+      }
+      return;
+    }
+
+    // Daily mode: game over when no moves left
+    if (mode === 'daily') {
+      if (dailyMovesLeft <= 0) {
+        set({ isGameOver: true });
+      }
+      return;
+    }
+
+    // Blitz mode: game over when time runs out (handled by tickTimer)
+    if (mode === 'blitz' && timeRemaining <= 0) {
+      set({ isGameOver: true, timerRunning: false });
+      return;
+    }
+
+    // Classic & Blitz: standard game over check
     const remainingPieces = currentPieces
       .filter((p): p is GamePiece => p !== null)
       .map((p) => p.piece);
 
     if (remainingPieces.length > 0 && isGameOver(grid, remainingPieces)) {
-      set({ isGameOver: true });
+      set({ isGameOver: true, timerRunning: false });
     }
   },
 
@@ -154,5 +281,27 @@ export const useGameStore = create<GameState>((set, get) => ({
     const newPieces = [...currentPieces];
     newPieces[pieceIndex] = { ...gamePiece, piece: rotatedPiece };
     set({ currentPieces: newPieces });
+  },
+
+  tickTimer: () => {
+    const { timeRemaining, timerRunning, mode } = get();
+    if (!timerRunning || mode !== 'blitz') return;
+
+    const newTime = timeRemaining - 1;
+    if (newTime <= 0) {
+      set({ timeRemaining: 0, isGameOver: true, timerRunning: false });
+    } else {
+      set({ timeRemaining: newTime });
+    }
+  },
+
+  zenPartialClear: () => {
+    const { grid } = get();
+    // Clear bottom 3 rows to give player breathing room
+    const newGrid = grid.map((row, rowIndex) => {
+      if (rowIndex >= 7) return row.map(() => 0);
+      return [...row];
+    });
+    set({ grid: newGrid });
   },
 }));
