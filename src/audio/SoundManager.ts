@@ -1,3 +1,5 @@
+import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
+
 type SoundName =
   | 'place'
   | 'lineClear'
@@ -8,7 +10,7 @@ type SoundName =
   | 'achievement'
   | 'levelUp';
 
-const SOUND_ASSETS: Record<SoundName, any> = {
+const SOUND_ASSETS: Record<SoundName, number> = {
   place: require('../../assets/sounds/place.mp3'),
   lineClear: require('../../assets/sounds/line_clear.mp3'),
   combo: require('../../assets/sounds/combo.mp3'),
@@ -27,25 +29,18 @@ const VOLUMES: Partial<Record<SoundName, number>> = {
 };
 
 class SoundManager {
-  private Audio: any = null;
   private enabled = true;
   private initialized = false;
 
   async init() {
     if (this.initialized) return;
     try {
-      // Dynamic import so the app doesn't crash in Expo Go
-      // where the native module ExponentAV is not available
-      const mod = require('expo-av');
-      this.Audio = mod.Audio;
-      await this.Audio.setAudioModeAsync({
-        playsInSilentModeIOS: false,
-        staysActiveInBackground: false,
-        shouldDuckAndroid: true,
+      await setAudioModeAsync({
+        playsInSilentMode: false,
       });
       this.initialized = true;
     } catch {
-      // expo-av native module not available (Expo Go) — audio disabled
+      // Native module not available
       this.initialized = false;
     }
   }
@@ -59,21 +54,15 @@ class SoundManager {
   }
 
   async play(name: SoundName) {
-    if (!this.enabled || !this.initialized || !this.Audio) return;
+    if (!this.enabled || !this.initialized) return;
 
     try {
       const source = SOUND_ASSETS[name];
       if (!source) return;
 
-      const { sound } = await this.Audio.Sound.createAsync(
-        source,
-        { shouldPlay: true, volume: VOLUMES[name] ?? 0.5 }
-      );
-      sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.didJustFinish) {
-          sound.unloadAsync();
-        }
-      });
+      const player = createAudioPlayer(source);
+      player.volume = VOLUMES[name] ?? 0.5;
+      player.play();
     } catch {
       // Silently fail
     }
