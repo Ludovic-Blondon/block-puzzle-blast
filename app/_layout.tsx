@@ -45,6 +45,9 @@ export default function RootLayout() {
             <Stack.Screen name="zen" options={{ gestureEnabled: false }} />
             <Stack.Screen name="daily" options={{ gestureEnabled: false }} />
             <Stack.Screen name="tutorial" options={{ gestureEnabled: false, animation: 'fade' }} />
+            <Stack.Screen name="shop" />
+            <Stack.Screen name="achievements" />
+            <Stack.Screen name="leaderboard" />
           </Stack>
         </View>
       </ThemeProvider>

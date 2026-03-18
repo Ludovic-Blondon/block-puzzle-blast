@@ -5,6 +5,11 @@ import { usePlayerStore, MissionProgress } from '../store/playerStore';
 import { getDailyMissions, getWeeklyMissions } from '../constants/missions';
 import { hapticSuccess } from '../utils/haptics';
 
+function getTodayStr(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
 export default function MissionPanel() {
   const {
     dailyMissions,
@@ -14,7 +19,7 @@ export default function MissionPanel() {
     claimMission,
   } = usePlayerStore();
 
-  const dailyDefs = getDailyMissions(dailyMissionsDate || '');
+  const dailyDefs = getDailyMissions(dailyMissionsDate || getTodayStr());
   const weeklyDefs = getWeeklyMissions(weeklyMissionsWeek || 0);
 
   const handleClaim = (id: string, type: 'daily' | 'weekly') => {

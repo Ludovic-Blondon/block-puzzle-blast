@@ -1,5 +1,3 @@
-import { Audio } from 'expo-av';
-
 type SoundName =
   | 'place'
   | 'lineClear'
@@ -10,22 +8,43 @@ type SoundName =
   | 'achievement'
   | 'levelUp';
 
+// Preload require() calls so Metro bundles them at build time
+const SOUND_ASSETS: Record<SoundName, any> = {
+  place: require('../../assets/sounds/place.mp3'),
+  lineClear: require('../../assets/sounds/line_clear.mp3'),
+  combo: require('../../assets/sounds/combo.mp3'),
+  gameOver: require('../../assets/sounds/game_over.mp3'),
+  buttonTap: require('../../assets/sounds/button_tap.mp3'),
+  powerUp: require('../../assets/sounds/power_up.mp3'),
+  achievement: require('../../assets/sounds/achievement.mp3'),
+  levelUp: require('../../assets/sounds/level_up.mp3'),
+};
+
+const VOLUMES: Partial<Record<SoundName, number>> = {
+  combo: 0.8,
+  achievement: 0.8,
+  levelUp: 0.8,
+  buttonTap: 0.3,
+};
+
 class SoundManager {
-  private sounds: Map<SoundName, Audio.Sound> = new Map();
+  private Audio: any = null;
   private enabled = true;
   private initialized = false;
 
   async init() {
     if (this.initialized) return;
     try {
-      await Audio.setAudioModeAsync({
+      const mod = await import('expo-av');
+      this.Audio = mod.Audio;
+      await this.Audio.setAudioModeAsync({
         playsInSilentModeIOS: false,
         staysActiveInBackground: false,
         shouldDuckAndroid: true,
       });
       this.initialized = true;
     } catch {
-      // Audio not available (e.g. web)
+      // expo-av not available (web, missing native module, etc.)
     }
   }
 
@@ -38,68 +57,24 @@ class SoundManager {
   }
 
   async play(name: SoundName) {
-    if (!this.enabled || !this.initialized) return;
+    if (!this.enabled || !this.initialized || !this.Audio) return;
 
     try {
-      // Create a fresh sound each time for overlapping SFX
-      const { sound } = await Audio.Sound.createAsync(
-        this.getSource(name),
-        { shouldPlay: true, volume: this.getVolume(name) }
+      const source = SOUND_ASSETS[name];
+      if (!source) return;
+
+      const { sound } = await this.Audio.Sound.createAsync(
+        source,
+        { shouldPlay: true, volume: VOLUMES[name] ?? 0.5 }
       );
-      // Auto-cleanup when done
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if ('didJustFinish' in status && status.didJustFinish) {
+      sound.setOnPlaybackStatusUpdate((status: any) => {
+        if (status.didJustFinish) {
           sound.unloadAsync();
         }
       });
     } catch {
-      // Silently fail if audio file missing
+      // Silently fail
     }
-  }
-
-  private getSource(name: SoundName) {
-    // Using programmatic tone generation via silent placeholder
-    // In production, replace with actual audio assets
-    switch (name) {
-      case 'place':
-        return require('../../assets/sounds/place.mp3');
-      case 'lineClear':
-        return require('../../assets/sounds/line_clear.mp3');
-      case 'combo':
-        return require('../../assets/sounds/combo.mp3');
-      case 'gameOver':
-        return require('../../assets/sounds/game_over.mp3');
-      case 'buttonTap':
-        return require('../../assets/sounds/button_tap.mp3');
-      case 'powerUp':
-        return require('../../assets/sounds/power_up.mp3');
-      case 'achievement':
-        return require('../../assets/sounds/achievement.mp3');
-      case 'levelUp':
-        return require('../../assets/sounds/level_up.mp3');
-      default:
-        return require('../../assets/sounds/button_tap.mp3');
-    }
-  }
-
-  private getVolume(name: SoundName): number {
-    switch (name) {
-      case 'combo':
-      case 'achievement':
-      case 'levelUp':
-        return 0.8;
-      case 'buttonTap':
-        return 0.3;
-      default:
-        return 0.5;
-    }
-  }
-
-  async cleanup() {
-    for (const sound of this.sounds.values()) {
-      await sound.unloadAsync();
-    }
-    this.sounds.clear();
   }
 }
 

@@ -12,7 +12,7 @@ interface DailyRewardProps {
 export default function DailyReward({ visible, onClaim }: DailyRewardProps) {
   const slideAnim = useRef(new Animated.Value(300)).current;
   const dailyStreak = usePlayerStore((s) => s.dailyStreak);
-  const currentDay = (dailyStreak % 7); // 0-6, the NEXT reward to claim
+  const currentDay = dailyStreak % 7; // 0-6, index into DAILY_REWARDS for the NEXT claim
 
   useEffect(() => {
     if (visible) {
