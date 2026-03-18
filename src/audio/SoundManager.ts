@@ -36,7 +36,7 @@ class SoundManager {
     if (this.initialized) return;
     try {
       await setAudioModeAsync({
-        playsInSilentMode: true,
+        playsInSilentMode: false,
       });
       this.initialized = true;
     } catch {
