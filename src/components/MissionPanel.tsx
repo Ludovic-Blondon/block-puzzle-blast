@@ -63,7 +63,10 @@ export default function MissionPanel() {
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>DAILY MISSIONS</Text>
       {dailyMissions.map((m) => renderMission(m, 'daily'))}
-      <Text style={[styles.sectionTitle, { marginTop: 12 }]}>WEEKLY</Text>
+
+      <View style={styles.sectionDivider} />
+
+      <Text style={styles.sectionTitle}>WEEKLY</Text>
       {weeklyMissions.map((m) => renderMission(m, 'weekly'))}
     </View>
   );
@@ -71,31 +74,41 @@ export default function MissionPanel() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 24,
-    marginBottom: 16,
+    backgroundColor: 'rgba(15, 52, 96, 0.3)',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 20,
+    marginHorizontal: 0,
+    marginBottom: 24,
   },
   sectionTitle: {
-    color: COLORS.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 8,
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 16,
+  },
+  sectionDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 16,
   },
   missionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   missionInfo: {
     flex: 1,
   },
   missionText: {
     color: COLORS.text,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
+    lineHeight: 20,
     marginBottom: 4,
   },
   claimedText: {
@@ -103,38 +116,43 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
   },
   progressBar: {
-    height: 4,
+    height: 6,
     backgroundColor: COLORS.gridLine,
-    borderRadius: 2,
+    borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   progressFill: {
     height: '100%',
     backgroundColor: COLORS.accentGold,
-    borderRadius: 2,
+    borderRadius: 3,
   },
   progressText: {
     color: COLORS.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
   claimButton: {
     backgroundColor: COLORS.accentGold,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginLeft: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginLeft: 12,
+    shadowColor: COLORS.accentGold,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   claimText: {
     color: COLORS.background,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
   },
   doneText: {
     color: COLORS.success,
     fontSize: 12,
     fontWeight: '700',
-    marginLeft: 8,
+    marginLeft: 12,
   },
 });
