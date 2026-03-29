@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../utils/colors';
 
 interface ScoreDisplayProps {
@@ -9,6 +10,7 @@ interface ScoreDisplayProps {
 }
 
 function ScoreDisplay({ score, bestScore, coins }: ScoreDisplayProps) {
+  const { t } = useTranslation();
   const scoreScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -23,15 +25,15 @@ function ScoreDisplay({ score, bestScore, coins }: ScoreDisplayProps) {
   return (
     <View style={styles.container}>
       <View style={styles.statBox}>
-        <Text style={styles.label}>BEST</Text>
+        <Text style={styles.label}>{t('score.best')}</Text>
         <Text style={styles.value}>{bestScore.toLocaleString()}</Text>
       </View>
       <Animated.View style={[styles.scoreBox, { transform: [{ scale: scoreScale }] }]}>
-        <Text style={styles.scoreLabel}>SCORE</Text>
+        <Text style={styles.scoreLabel}>{t('score.score')}</Text>
         <Text style={styles.scoreValue}>{score.toLocaleString()}</Text>
       </Animated.View>
       <View style={styles.statBox}>
-        <Text style={styles.label}>COINS</Text>
+        <Text style={styles.label}>{t('score.coins')}</Text>
         <Text style={[styles.value, styles.coinsValue]}>{coins}</Text>
       </View>
     </View>

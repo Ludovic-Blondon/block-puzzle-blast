@@ -3,6 +3,7 @@ import { View, StyleSheet, useWindowDimensions, Pressable, Text } from 'react-na
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../src/store/gameStore';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
@@ -27,6 +28,7 @@ import { soundManager } from '../src/audio/SoundManager';
 import { usePowerUpAnimation } from '../src/hooks/usePowerUpAnimation';
 
 export default function GameScreen() {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const gridContainerSize = screenWidth - 32;
   const insets = useSafeAreaInsets();
@@ -307,7 +309,7 @@ export default function GameScreen() {
           <Text style={styles.backText}>✕</Text>
         </Pressable>
         <View style={styles.levelBadge}>
-          <Text style={styles.levelText}>Lv.{level}</Text>
+          <Text style={styles.levelText}>{t('game.level', { level })}</Text>
         </View>
       </View>
 
@@ -390,7 +392,7 @@ export default function GameScreen() {
         bestScore={Math.max(bestScore, score)}
         isNewBest={score > bestScore}
         coinsEarned={totalCoinsEarned}
-        modeName="Classic"
+        modeName={t('game.classic')}
         onPlayAgain={handlePlayAgain}
         onGoHome={handleGoHome}
       />

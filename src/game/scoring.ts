@@ -4,6 +4,7 @@ import {
   COMBO_MULTIPLIER_BASE,
   STREAK_BONUS,
 } from '../constants/config';
+import i18n from '../locales/i18n';
 
 export interface ScoreResult {
   points: number;
@@ -51,19 +52,19 @@ export function calculateScore(
 
 export function getComboText(linesCleared: number): string {
   switch (linesCleared) {
-    case 2: return 'DOUBLE!';
-    case 3: return 'TRIPLE!';
-    case 4: return 'QUAD!';
+    case 2: return i18n.t('combo.double');
+    case 3: return i18n.t('combo.triple');
+    case 4: return i18n.t('combo.quad');
     default:
-      if (linesCleared >= 5) return 'INSANE!';
+      if (linesCleared >= 5) return i18n.t('combo.insane');
       return '';
   }
 }
 
 export function getStreakText(streak: number): string {
-  if (streak >= 10) return 'UNSTOPPABLE!';
-  if (streak >= 7) return 'ON FIRE!';
-  if (streak >= 5) return 'AMAZING!';
-  if (streak >= 3) return 'GREAT!';
+  if (streak >= 10) return i18n.t('streak.unstoppable');
+  if (streak >= 7) return i18n.t('streak.onFire');
+  if (streak >= 5) return i18n.t('streak.amazing');
+  if (streak >= 3) return i18n.t('streak.great');
   return '';
 }

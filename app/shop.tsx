@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
 import { PowerUpType, POWERUP_COSTS, getLevelForXP } from '../src/constants/config';
@@ -10,15 +11,16 @@ import { THEMES } from '../src/constants/themes';
 import { hapticMedium, hapticSuccess, hapticError } from '../src/utils/haptics';
 import { soundManager } from '../src/audio/SoundManager';
 
-const SHOP_ITEMS: { type: PowerUpType; icon: string; name: string; description: string }[] = [
-  { type: 'bomb', icon: '💣', name: 'Bomb', description: 'Clears a 3x3 area on the grid' },
-  { type: 'clearLine', icon: '⚡', name: 'Line Clear', description: 'Clears an entire row' },
-  { type: 'rotate', icon: '🔄', name: 'Rotate', description: 'Rotate a piece 90 degrees' },
+const SHOP_ITEMS: { type: PowerUpType; icon: string; nameKey: string; descKey: string }[] = [
+  { type: 'bomb', icon: '💣', nameKey: 'powerUps.bomb', descKey: 'shop.bombDesc' },
+  { type: 'clearLine', icon: '⚡', nameKey: 'powerUps.clearLine', descKey: 'shop.clearLineDesc' },
+  { type: 'rotate', icon: '🔄', nameKey: 'powerUps.rotate', descKey: 'shop.rotateDesc' },
 ];
 
 type ShopTab = 'powerups' | 'themes';
 
 export default function ShopScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { coins, xp, powerUps, ownedThemes, activeTheme, buyPowerUp, buyTheme, setActiveTheme } = usePlayerStore();
   const [tab, setTab] = useState<ShopTab>('powerups');
@@ -58,7 +60,7 @@ export default function ShopScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to home">
           <Text style={styles.backText}>←</Text>
         </Pressable>
-        <Text style={styles.title}>SHOP</Text>
+        <Text style={styles.title}>{t('shop.title')}</Text>
         <View style={styles.coinBox}>
           <Text style={styles.coinText}>{coins} 💰</Text>
         </View>
@@ -73,7 +75,7 @@ export default function ShopScreen() {
           accessibilityLabel="Power-ups tab"
           accessibilityState={{ selected: tab === 'powerups' }}
         >
-          <Text style={[styles.tabText, tab === 'powerups' && styles.tabTextActive]}>Power-ups</Text>
+          <Text style={[styles.tabText, tab === 'powerups' && styles.tabTextActive]}>{t('shop.powerUps')}</Text>
         </Pressable>
         <Pressable
           style={[styles.tab, tab === 'themes' && styles.tabActive]}
@@ -82,7 +84,7 @@ export default function ShopScreen() {
           accessibilityLabel="Themes tab"
           accessibilityState={{ selected: tab === 'themes' }}
         >
-          <Text style={[styles.tabText, tab === 'themes' && styles.tabTextActive]}>Themes</Text>
+          <Text style={[styles.tabText, tab === 'themes' && styles.tabTextActive]}>{t('shop.themes')}</Text>
         </Pressable>
       </View>
 
@@ -97,8 +99,8 @@ export default function ShopScreen() {
               <View style={styles.itemHeader}>
                 <Text style={styles.itemIcon}>{item.icon}</Text>
                 <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemDescription}>{item.description}</Text>
+                  <Text style={styles.itemName}>{t(item.nameKey)}</Text>
+                  <Text style={styles.itemDescription}>{t(item.descKey)}</Text>
                 </View>
                 <View style={styles.ownedBadge}>
                   <Text style={styles.ownedText}>x{owned}</Text>
@@ -109,10 +111,10 @@ export default function ShopScreen() {
                 onPress={() => handleBuyPowerUp(item.type)}
                 disabled={!canAfford}
                 accessibilityRole="button"
-                accessibilityLabel={"Buy " + item.name + " for " + cost + " coins"}
+                accessibilityLabel={"Buy " + t(item.nameKey) + " for " + cost + " coins"}
               >
                 <Text style={[styles.buyText, !canAfford && styles.buyTextDisabled]}>
-                  {cost} coins
+                  {t('shop.cost', { cost })}
                 </Text>
               </Pressable>
             </View>
@@ -135,15 +137,15 @@ export default function ShopScreen() {
                   ))}
                 </View>
                 <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{theme.name}</Text>
-                  {owned && isActive && <Text style={styles.activeLabel}>Active</Text>}
+                  <Text style={styles.itemName}>{t('themes.' + theme.id, { defaultValue: theme.name })}</Text>
+                  {owned && isActive && <Text style={styles.activeLabel}>{t('shop.active')}</Text>}
                   {levelLocked && (
-                    <Text style={styles.lockText}>Requires Lv.{theme.unlockLevel}</Text>
+                    <Text style={styles.lockText}>{t('shop.requiresLevel', { level: theme.unlockLevel })}</Text>
                   )}
                 </View>
                 {owned && (
                   <View style={[styles.ownedBadge, isActive && styles.activeBadge]}>
-                    <Text style={styles.ownedText}>{isActive ? '✓' : 'Owned'}</Text>
+                    <Text style={styles.ownedText}>{isActive ? '✓' : t('shop.owned')}</Text>
                   </View>
                 )}
               </View>
@@ -151,7 +153,7 @@ export default function ShopScreen() {
               {owned ? (
                 !isActive ? (
                   <Pressable style={styles.selectButton} onPress={() => handleSelectTheme(theme.id)} accessibilityRole="button" accessibilityLabel={"Select " + theme.name + " theme"}>
-                    <Text style={styles.selectText}>USE</Text>
+                    <Text style={styles.selectText}>{t('shop.use')}</Text>
                   </Pressable>
                 ) : null
               ) : (
@@ -163,7 +165,7 @@ export default function ShopScreen() {
                   accessibilityLabel={"Buy " + theme.name + " theme for " + theme.price + " coins"}
                 >
                   <Text style={[styles.buyText, (!canAfford || levelLocked) && styles.buyTextDisabled]}>
-                    {theme.price === 0 ? 'FREE' : `${theme.price} coins`}
+                    {theme.price === 0 ? t('shop.free') : t('shop.cost', { cost: theme.price })}
                   </Text>
                 </Pressable>
               )}

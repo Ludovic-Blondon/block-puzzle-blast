@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../utils/colors';
 import { usePlayerStore, MissionProgress } from '../store/playerStore';
 import { getDailyMissions, getWeeklyMissions } from '../constants/missions';
@@ -11,6 +12,7 @@ function getTodayStr(): string {
 }
 
 export default function MissionPanel() {
+  const { t } = useTranslation();
   const {
     dailyMissions,
     weeklyMissions,
@@ -39,7 +41,7 @@ export default function MissionPanel() {
       <View key={m.id} style={styles.missionRow}>
         <View style={styles.missionInfo}>
           <Text style={[styles.missionText, m.claimed && styles.claimedText]}>
-            {def.description}
+            {t('missions_data.' + m.id, { defaultValue: def.description })}
           </Text>
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
@@ -53,7 +55,7 @@ export default function MissionPanel() {
             <Text style={styles.claimText}>+{def.rewardCoins}</Text>
           </Pressable>
         ) : m.claimed ? (
-          <Text style={styles.doneText}>Done</Text>
+          <Text style={styles.doneText}>{t('missions.done')}</Text>
         ) : null}
       </View>
     );
@@ -61,12 +63,12 @@ export default function MissionPanel() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>DAILY MISSIONS</Text>
+      <Text style={styles.sectionTitle}>{t('missions.title')}</Text>
       {dailyMissions.map((m) => renderMission(m, 'daily'))}
 
       <View style={styles.sectionDivider} />
 
-      <Text style={styles.sectionTitle}>WEEKLY</Text>
+      <Text style={styles.sectionTitle}>{t('missions.weekly')}</Text>
       {weeklyMissions.map((m) => renderMission(m, 'weekly'))}
     </View>
   );

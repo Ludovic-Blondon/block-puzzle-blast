@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../utils/colors';
 import { getTierColor } from '../../constants/achievements';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
@@ -12,6 +13,7 @@ interface AchievementToastProps {
 }
 
 export default function AchievementToast({ name, tier = 'bronze', visible, onDone }: AchievementToastProps) {
+  const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -65,7 +67,7 @@ export default function AchievementToast({ name, tier = 'bronze', visible, onDon
     >
       <Text style={styles.icon}>🏆</Text>
       <View style={styles.textContainer}>
-        <Text style={styles.label}>Achievement Unlocked!</Text>
+        <Text style={styles.label}>{t('toast.achievementUnlocked')}</Text>
         <Text style={[styles.name, { color: getTierColor(tier) }]}>{name}</Text>
       </View>
     </Animated.View>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, Animated } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../utils/colors';
 import { DAILY_REWARDS } from '../constants/config';
 import { usePlayerStore } from '../store/playerStore';
@@ -10,6 +11,7 @@ interface DailyRewardProps {
 }
 
 export default function DailyReward({ visible, onClaim }: DailyRewardProps) {
+  const { t } = useTranslation();
   const slideAnim = useRef(new Animated.Value(300)).current;
   const dailyStreak = usePlayerStore((s) => s.dailyStreak);
   const currentDay = dailyStreak % 7; // 0-6, index into DAILY_REWARDS for the NEXT claim
@@ -30,8 +32,8 @@ export default function DailyReward({ visible, onClaim }: DailyRewardProps) {
       <View style={styles.overlay}>
         <Animated.View style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.emoji}>🎁</Text>
-          <Text style={styles.title}>DAILY REWARD</Text>
-          <Text style={styles.subtitle}>Day {currentDay + 1} of 7</Text>
+          <Text style={styles.title}>{t('dailyReward.title')}</Text>
+          <Text style={styles.subtitle}>{t('dailyReward.dayOf', { day: currentDay + 1 })}</Text>
 
           {/* 7-day calendar */}
           <View style={styles.calendar}>
@@ -48,7 +50,7 @@ export default function DailyReward({ visible, onClaim }: DailyRewardProps) {
                   ]}
                 >
                   <Text style={[styles.dayLabel, isCurrent && styles.dayLabelCurrent]}>
-                    D{index + 1}
+                    {t('dailyReward.day', { day: index + 1 })}
                   </Text>
                   <Text style={[styles.dayCoins, isCurrent && styles.dayLabelCurrent]}>
                     {reward.coins}
@@ -64,14 +66,14 @@ export default function DailyReward({ visible, onClaim }: DailyRewardProps) {
 
           <View style={styles.rewardBox}>
             <Text style={styles.coinAmount}>+{todayReward.coins}</Text>
-            <Text style={styles.coinLabel}>coins</Text>
+            <Text style={styles.coinLabel}>{t('dailyReward.coins')}</Text>
             {todayReward.powerUp && (
-              <Text style={styles.bonusText}>+ Free power-up!</Text>
+              <Text style={styles.bonusText}>{t('dailyReward.freePowerUp')}</Text>
             )}
           </View>
 
           <Pressable style={styles.claimButton} onPress={onClaim} accessibilityRole="button" accessibilityLabel={`Claim ${todayReward.coins} coins daily reward`}>
-            <Text style={styles.claimButtonText}>CLAIM</Text>
+            <Text style={styles.claimButtonText}>{t('dailyReward.claim')}</Text>
           </Pressable>
         </Animated.View>
       </View>

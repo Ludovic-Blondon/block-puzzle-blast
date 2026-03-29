@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
 import { GameMode, MODE_CONFIGS } from '../src/constants/config';
@@ -10,6 +11,7 @@ import { GameMode, MODE_CONFIGS } from '../src/constants/config';
 const MODES: GameMode[] = ['classic', 'blitz', 'daily'];
 
 export default function LeaderboardScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { leaderboard } = usePlayerStore();
   const [selectedMode, setSelectedMode] = useState<GameMode>('classic');
@@ -28,7 +30,7 @@ export default function LeaderboardScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to home">
           <Text style={styles.backText}>←</Text>
         </Pressable>
-        <Text style={styles.title}>LEADERBOARD</Text>
+        <Text style={styles.title}>{t('leaderboard.title')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -44,7 +46,7 @@ export default function LeaderboardScreen() {
             accessibilityState={{ selected: selectedMode === mode }}
           >
             <Text style={[styles.tabText, selectedMode === mode && styles.tabTextActive]}>
-              {MODE_CONFIGS[mode].icon} {MODE_CONFIGS[mode].name}
+              {MODE_CONFIGS[mode].icon} {t('modes.' + mode)}
             </Text>
           </Pressable>
         ))}
@@ -54,8 +56,8 @@ export default function LeaderboardScreen() {
         {filteredScores.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🏆</Text>
-            <Text style={styles.emptyText}>No scores yet!</Text>
-            <Text style={styles.emptySubtext}>Play {MODE_CONFIGS[selectedMode].name} to set a record</Text>
+            <Text style={styles.emptyText}>{t('leaderboard.noScores')}</Text>
+            <Text style={styles.emptySubtext}>{t('leaderboard.playToRecord', { mode: t('modes.' + selectedMode) })}</Text>
           </View>
         )}
 

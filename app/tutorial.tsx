@@ -3,44 +3,22 @@ import { View, Text, StyleSheet, Pressable, Animated, useWindowDimensions } from
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../src/utils/colors';
 import { usePlayerStore } from '../src/store/playerStore';
 import { hapticMedium } from '../src/utils/haptics';
 
 const STEPS = [
-  {
-    title: 'Welcome!',
-    description: 'Block Puzzle Blast is a fun puzzle game.\nDrag and drop pieces to fill the grid!',
-    icon: '🎮',
-  },
-  {
-    title: 'Place Pieces',
-    description: 'Drag pieces from the tray at the bottom\nand drop them on the grid.',
-    icon: '👆',
-  },
-  {
-    title: 'Clear Lines',
-    description: 'Complete a full row or column to clear it.\nCleared lines earn you points and coins!',
-    icon: '✨',
-  },
-  {
-    title: 'Combos & Streaks',
-    description: 'Clear multiple lines at once for combo bonuses!\nConsecutive clears build your streak.',
-    icon: '🔥',
-  },
-  {
-    title: 'Power-ups',
-    description: 'Buy power-ups in the shop with your coins.\nBomb, Line Clear, and Rotate will save you!',
-    icon: '💣',
-  },
-  {
-    title: 'Ready?',
-    description: 'Try Classic mode first, then unlock\nBlitz, Zen, and Daily challenges!',
-    icon: '🚀',
-  },
+  { titleKey: 'tutorial.step1Title', descKey: 'tutorial.step1Desc', icon: '🎮' },
+  { titleKey: 'tutorial.step2Title', descKey: 'tutorial.step2Desc', icon: '👆' },
+  { titleKey: 'tutorial.step3Title', descKey: 'tutorial.step3Desc', icon: '✨' },
+  { titleKey: 'tutorial.step4Title', descKey: 'tutorial.step4Desc', icon: '🔥' },
+  { titleKey: 'tutorial.step5Title', descKey: 'tutorial.step5Desc', icon: '💣' },
+  { titleKey: 'tutorial.step6Title', descKey: 'tutorial.step6Desc', icon: '🚀' },
 ];
 
 export default function TutorialScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState(0);
   const { completeTutorial } = usePlayerStore();
@@ -86,15 +64,15 @@ export default function TutorialScreen() {
     >
       {/* Skip button */}
       <View style={styles.topBar}>
-        <Pressable onPress={handleSkip} accessibilityRole="button" accessibilityLabel="Skip tutorial">
-          <Text style={styles.skipText}>Skip</Text>
+        <Pressable onPress={handleSkip} accessibilityRole="button" accessibilityLabel={t('tutorial.skip')}>
+          <Text style={styles.skipText}>{t('tutorial.skip')}</Text>
         </Pressable>
       </View>
 
       <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         <Text style={styles.icon}>{current.icon}</Text>
-        <Text style={styles.title}>{current.title}</Text>
-        <Text style={styles.description}>{current.description}</Text>
+        <Text style={styles.title}>{t(current.titleKey)}</Text>
+        <Text style={styles.description}>{t(current.descKey)}</Text>
       </Animated.View>
 
       {/* Step dots */}
@@ -107,7 +85,7 @@ export default function TutorialScreen() {
       {/* Next button */}
       <Pressable style={styles.nextButton} onPress={handleNext} accessibilityRole="button" accessibilityLabel="Next step">
         <Text style={styles.nextText}>
-          {step === STEPS.length - 1 ? 'START PLAYING' : 'NEXT'}
+          {step === STEPS.length - 1 ? t('tutorial.start') : t('tutorial.next')}
         </Text>
       </Pressable>
     </LinearGradient>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, Animated } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../utils/colors';
 import * as Sharing from 'expo-sharing';
 
@@ -26,6 +27,7 @@ export default function GameOverModal({
   onGoHome,
   onShare,
 }: GameOverModalProps) {
+  const { t } = useTranslation();
   const slideAnim = useRef(new Animated.Value(300)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -60,37 +62,37 @@ export default function GameOverModal({
     <Modal visible={visible} transparent animationType="none" onRequestClose={onGoHome}>
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
         <Animated.View style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}>
-          <Text style={styles.title}>GAME OVER</Text>
+          <Text style={styles.title}>{t('gameOver.title')}</Text>
           {modeName !== 'Classic' && <Text style={styles.modeLabel}>{modeName}</Text>}
 
-          {isNewBest && <Text style={styles.newBest}>NEW BEST!</Text>}
+          {isNewBest && <Text style={styles.newBest}>{t('gameOver.newBest')}</Text>}
 
           <View style={styles.scoreContainer}>
             <View style={styles.scoreRow}>
-              <Text style={styles.scoreLabel}>Score</Text>
+              <Text style={styles.scoreLabel}>{t('gameOver.score')}</Text>
               <Text style={styles.scoreValue}>{score.toLocaleString()}</Text>
             </View>
             <View style={styles.scoreRow}>
-              <Text style={styles.scoreLabel}>Best</Text>
+              <Text style={styles.scoreLabel}>{t('gameOver.best')}</Text>
               <Text style={styles.bestValue}>{bestScore.toLocaleString()}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.scoreRow}>
-              <Text style={styles.scoreLabel}>Coins Earned</Text>
+              <Text style={styles.scoreLabel}>{t('gameOver.coinsEarned')}</Text>
               <Text style={styles.coinsValue}>+{coinsEarned}</Text>
             </View>
           </View>
 
           <Pressable style={styles.playButton} onPress={onPlayAgain} accessibilityRole="button" accessibilityLabel="Play again">
-            <Text style={styles.playButtonText}>PLAY AGAIN</Text>
+            <Text style={styles.playButtonText}>{t('gameOver.playAgain')}</Text>
           </Pressable>
 
           <View style={styles.bottomButtons}>
             <Pressable style={styles.secondaryButton} onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share score">
-              <Text style={styles.secondaryButtonText}>SHARE</Text>
+              <Text style={styles.secondaryButtonText}>{t('gameOver.share')}</Text>
             </Pressable>
             <Pressable style={styles.secondaryButton} onPress={onGoHome} accessibilityRole="button" accessibilityLabel="Back to home">
-              <Text style={styles.secondaryButtonText}>HOME</Text>
+              <Text style={styles.secondaryButtonText}>{t('gameOver.home')}</Text>
             </Pressable>
           </View>
         </Animated.View>

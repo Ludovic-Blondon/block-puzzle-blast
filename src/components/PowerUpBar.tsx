@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../utils/colors';
 import { PowerUpType } from '../constants/config';
 
@@ -9,13 +10,14 @@ interface PowerUpBarProps {
   onSelect: (type: PowerUpType) => void;
 }
 
-const POWERUP_INFO: Record<PowerUpType, { icon: string; label: string }> = {
-  bomb: { icon: '💣', label: 'Bomb' },
-  clearLine: { icon: '⚡', label: 'Clear' },
-  rotate: { icon: '🔄', label: 'Rotate' },
+const POWERUP_INFO: Record<PowerUpType, { icon: string; labelKey: string }> = {
+  bomb: { icon: '💣', labelKey: 'powerUps.bomb' },
+  clearLine: { icon: '⚡', labelKey: 'powerUps.clearLine' },
+  rotate: { icon: '🔄', labelKey: 'powerUps.rotate' },
 };
 
 function PowerUpBar({ powerUps, activePowerUp, onSelect }: PowerUpBarProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
       {(Object.keys(POWERUP_INFO) as PowerUpType[]).map((type) => {
@@ -30,12 +32,12 @@ function PowerUpBar({ powerUps, activePowerUp, onSelect }: PowerUpBarProps) {
             onPress={() => count > 0 && onSelect(type)}
             disabled={count === 0}
             accessibilityRole="button"
-            accessibilityLabel={`${info.label}, ${count} remaining`}
+            accessibilityLabel={`${t(info.labelKey)}, ${count} remaining`}
             accessibilityState={{ selected: isActive, disabled: count === 0 }}
           >
             <Text style={styles.icon}>{info.icon}</Text>
             <Text style={[styles.label, count === 0 && styles.disabledLabel]}>
-              {info.label}
+              {t(info.labelKey)}
             </Text>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{count}</Text>

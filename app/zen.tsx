@@ -3,6 +3,7 @@ import { View, StyleSheet, useWindowDimensions, Pressable, Text } from 'react-na
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../src/store/gameStore';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
@@ -14,6 +15,7 @@ import BlockTray from '../src/components/BlockTray';
 import { hapticSuccess, hapticError } from '../src/utils/haptics';
 
 export default function ZenScreen() {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const gridContainerSize = screenWidth - 32;
   const insets = useSafeAreaInsets();
@@ -101,13 +103,13 @@ export default function ZenScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close game">
           <Text style={styles.backText}>✕</Text>
         </Pressable>
-        <Text style={styles.modeLabel}>ZEN</Text>
+        <Text style={styles.modeLabel}>{t('zen.title')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
       {/* Lines counter instead of score */}
       <View style={styles.linesContainer}>
-        <Text style={styles.linesLabel}>LINES</Text>
+        <Text style={styles.linesLabel}>{t('zen.lines')}</Text>
         <Text style={styles.linesValue}>{zenLinesCleared}</Text>
       </View>
 

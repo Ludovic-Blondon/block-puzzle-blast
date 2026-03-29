@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
 import { formatAchievementDate, getTierColor } from '../src/constants/achievements';
 
 export default function AchievementsScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { achievements } = usePlayerStore();
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
@@ -28,7 +30,7 @@ export default function AchievementsScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to home">
           <Text style={styles.backText}>←</Text>
         </Pressable>
-        <Text style={styles.title}>ACHIEVEMENTS</Text>
+        <Text style={styles.title}>{t('achievements.title')}</Text>
         <Text style={styles.counter}>
           {unlockedCount}/{achievements.length}
         </Text>
@@ -72,7 +74,7 @@ export default function AchievementsScreen() {
                       !achievement.unlocked && styles.lockedText,
                     ]}
                   >
-                    {isSecret ? '???' : achievement.name}
+                    {isSecret ? t('achievements.hidden') : t('achievements_data.' + achievement.id)}
                   </Text>
                   {achievement.tier && (
                     <View style={[styles.tierBadge, { backgroundColor: tierColor + '30' }]}>
@@ -83,11 +85,11 @@ export default function AchievementsScreen() {
                   )}
                 </View>
                 <Text style={styles.achievementDescription}>
-                  {isSecret ? 'Complete a secret challenge' : achievement.description}
+                  {isSecret ? t('achievements.secret') : t('achievements_data.' + achievement.id + '_desc')}
                 </Text>
                 {achievement.unlocked && achievement.unlockedAt && (
                   <Text style={[styles.unlockedDate, { color: tierColor }]}>
-                    Unlocked {formatAchievementDate(achievement.unlockedAt)}
+                    {t('achievements.unlocked', { date: formatAchievementDate(achievement.unlockedAt) })}
                   </Text>
                 )}
               </View>

@@ -8,6 +8,7 @@ import { COLORS } from '../src/utils/colors';
 import { ThemeProvider } from '../src/utils/ThemeContext';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 import { soundManager } from '../src/audio/SoundManager';
+import '../src/locales/i18n';
 
 SplashScreen.preventAutoHideAsync();
 

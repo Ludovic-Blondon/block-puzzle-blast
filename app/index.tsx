@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Animated, ScrollView } from 'react-n
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
 import { MODE_CONFIGS, GameMode, getLevelForXP } from '../src/constants/config';
@@ -13,6 +14,7 @@ import { hapticMedium } from '../src/utils/haptics';
 const MODES: GameMode[] = ['classic', 'blitz', 'zen', 'daily'];
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const {
     bestScore,
@@ -130,8 +132,8 @@ export default function HomeScreen() {
       >
         {/* Header */}
         <Animated.View style={[styles.header, fadeSlideDown(headerAnim)]}>
-          <Text style={styles.title}>BLOCK</Text>
-          <Text style={styles.titleAccent}>PUZZLE BLAST</Text>
+          <Text style={styles.title}>{t('home.title')}</Text>
+          <Text style={styles.titleAccent}>{t('home.subtitle')}</Text>
         </Animated.View>
 
         {/* Compact stat strip */}
@@ -151,14 +153,14 @@ export default function HomeScreen() {
           <View style={styles.statDivider} />
 
           <View style={styles.statStripItem}>
-            <Text style={styles.statStripLabel}>BEST</Text>
+            <Text style={styles.statStripLabel}>{t('home.best')}</Text>
             <Text style={styles.statStripValue}>{bestScore.toLocaleString()}</Text>
           </View>
 
           <View style={styles.statDivider} />
 
           <View style={styles.statStripItem}>
-            <Text style={styles.statStripLabel}>COINS</Text>
+            <Text style={styles.statStripLabel}>{t('home.coins')}</Text>
             <Text style={[styles.statStripValue, { color: COLORS.accentGold }]}>{coins}</Text>
           </View>
         </View>
@@ -173,14 +175,14 @@ export default function HomeScreen() {
             accessibilityRole="button"
             accessibilityLabel={`Play ${selectedConfig.name} mode`}
           >
-            <Text style={styles.playButtonText}>PLAY</Text>
-            <Text style={styles.playButtonSubtext}>{selectedConfig.name}</Text>
+            <Text style={styles.playButtonText}>{t('home.play')}</Text>
+            <Text style={styles.playButtonSubtext}>{t('modes.' + selectedMode)}</Text>
           </Pressable>
         </Animated.View>
 
         {/* Horizontal mode selector */}
         <Animated.View style={[styles.modeSection, fadeSlideDown(contentAnim)]}>
-          <Text style={styles.modeSectionLabel}>GAME MODES</Text>
+          <Text style={styles.modeSectionLabel}>{t('home.gameModes')}</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -203,7 +205,7 @@ export default function HomeScreen() {
                 >
                   <Text style={styles.modePillIcon}>{config.icon}</Text>
                   <Text style={[styles.modePillName, isSelected && { color: config.color }]}>
-                    {config.name}
+                    {t('modes.' + mode)}
                   </Text>
                 </Pressable>
               );
@@ -224,7 +226,7 @@ export default function HomeScreen() {
           accessibilityLabel="Open shop"
         >
           <Text style={styles.navIcon}>🛒</Text>
-          <Text style={styles.navText}>SHOP</Text>
+          <Text style={styles.navText}>{t('home.shop')}</Text>
         </Pressable>
 
         <Pressable
@@ -234,7 +236,7 @@ export default function HomeScreen() {
           accessibilityLabel="View achievements"
         >
           <Text style={styles.navIcon}>🏆</Text>
-          <Text style={styles.navText}>ACHIEVEMENTS</Text>
+          <Text style={styles.navText}>{t('home.achievements')}</Text>
         </Pressable>
 
         <Pressable
@@ -244,7 +246,7 @@ export default function HomeScreen() {
           accessibilityLabel="View leaderboard"
         >
           <Text style={styles.navIcon}>📊</Text>
-          <Text style={styles.navText}>SCORES</Text>
+          <Text style={styles.navText}>{t('home.scores')}</Text>
         </Pressable>
       </View>
 

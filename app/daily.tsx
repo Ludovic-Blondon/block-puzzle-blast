@@ -3,6 +3,7 @@ import { View, StyleSheet, useWindowDimensions, Pressable, Text } from 'react-na
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../src/store/gameStore';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
@@ -16,6 +17,7 @@ import { hapticSuccess, hapticError, hapticHeavy } from '../src/utils/haptics';
 import { soundManager } from '../src/audio/SoundManager';
 
 export default function DailyScreen() {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const gridContainerSize = screenWidth - 32;
   const insets = useSafeAreaInsets();
@@ -130,20 +132,20 @@ export default function DailyScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close game">
           <Text style={styles.backText}>✕</Text>
         </Pressable>
-        <Text style={styles.modeLabel}>DAILY CHALLENGE</Text>
+        <Text style={styles.modeLabel}>{t('daily.title')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
       {/* Objective and moves */}
       <View style={styles.objectiveBar}>
         <View style={styles.objectiveBox}>
-          <Text style={styles.objectiveLabel}>LINES</Text>
+          <Text style={styles.objectiveLabel}>{t('daily.lines')}</Text>
           <Text style={[styles.objectiveValue, success && styles.successText]}>
             {dailyLinesCleared}/{dailyObjective}
           </Text>
         </View>
         <View style={styles.objectiveBox}>
-          <Text style={styles.objectiveLabel}>MOVES LEFT</Text>
+          <Text style={styles.objectiveLabel}>{t('daily.movesLeft')}</Text>
           <Text style={[styles.objectiveValue, dailyMovesLeft <= 3 && styles.urgentText]}>
             {dailyMovesLeft}
           </Text>
@@ -152,7 +154,7 @@ export default function DailyScreen() {
 
       {success && (
         <View style={styles.successBanner}>
-          <Text style={styles.successBannerText}>CHALLENGE COMPLETE!</Text>
+          <Text style={styles.successBannerText}>{t('daily.challengeComplete')}</Text>
         </View>
       )}
 
@@ -177,7 +179,7 @@ export default function DailyScreen() {
         bestScore={dailyObjective}
         isNewBest={success}
         coinsEarned={success ? 100 : 0}
-        modeName="Daily Challenge"
+        modeName={t('daily.mode')}
         onPlayAgain={() => router.back()}
         onGoHome={() => router.back()}
       />

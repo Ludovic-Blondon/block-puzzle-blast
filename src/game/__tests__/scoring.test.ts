@@ -41,12 +41,12 @@ describe('getComboText', () => {
     expect(getComboText(1)).toBe('');
   });
 
-  it('returns correct text for each combo level', () => {
-    expect(getComboText(2)).toBe('DOUBLE!');
-    expect(getComboText(3)).toBe('TRIPLE!');
-    expect(getComboText(4)).toBe('QUAD!');
-    expect(getComboText(5)).toBe('INSANE!');
-    expect(getComboText(100)).toBe('INSANE!');
+  it('returns correct key for each combo level', () => {
+    expect(getComboText(2)).toBe('combo.double');
+    expect(getComboText(3)).toBe('combo.triple');
+    expect(getComboText(4)).toBe('combo.quad');
+    expect(getComboText(5)).toBe('combo.insane');
+    expect(getComboText(100)).toBe('combo.insane');
   });
 });
 
@@ -56,11 +56,11 @@ describe('getStreakText', () => {
     expect(getStreakText(2)).toBe('');
   });
 
-  it('returns correct text for each streak tier', () => {
-    expect(getStreakText(3)).toBe('GREAT!');
-    expect(getStreakText(5)).toBe('AMAZING!');
-    expect(getStreakText(7)).toBe('ON FIRE!');
-    expect(getStreakText(10)).toBe('UNSTOPPABLE!');
-    expect(getStreakText(50)).toBe('UNSTOPPABLE!');
+  it('returns correct key for each streak tier', () => {
+    expect(getStreakText(3)).toBe('streak.great');
+    expect(getStreakText(5)).toBe('streak.amazing');
+    expect(getStreakText(7)).toBe('streak.onFire');
+    expect(getStreakText(10)).toBe('streak.unstoppable');
+    expect(getStreakText(50)).toBe('streak.unstoppable');
   });
 });
