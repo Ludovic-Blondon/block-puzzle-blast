@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   levelText: {
     color: COLORS.text,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   title: {
     color: COLORS.textSecondary,

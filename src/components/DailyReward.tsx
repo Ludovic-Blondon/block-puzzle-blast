@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     color: COLORS.text,
     letterSpacing: 2,
   },
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   },
   coinAmount: {
     fontSize: 42,
-    fontWeight: '900',
+    fontWeight: '800',
     color: COLORS.accentGold,
   },
   coinLabel: {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, Animated, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, Animated } from 'react-native';
 import { COLORS } from '../utils/colors';
 import * as Sharing from 'expo-sharing';
 
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: '900',
+    fontWeight: '800',
     color: COLORS.text,
     letterSpacing: 2,
   },

@@ -1,4 +1,5 @@
 import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
+import { Platform } from 'react-native';
 
 type SoundName =
   | 'place'
@@ -35,9 +36,9 @@ class SoundManager {
   async init() {
     if (this.initialized) return;
     try {
-      await setAudioModeAsync({
-        playsInSilentMode: false,
-      });
+      await setAudioModeAsync(
+        Platform.OS === 'ios' ? { playsInSilentMode: false } : {}
+      );
       this.initialized = true;
     } catch {
       // Native module not available

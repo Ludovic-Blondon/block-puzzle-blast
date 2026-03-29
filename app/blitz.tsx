@@ -270,6 +270,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   backText: { color: COLORS.textSecondary, fontSize: 18, fontWeight: '700' },
-  modeLabel: { color: COLORS.warning, fontSize: 18, fontWeight: '900', letterSpacing: 2 },
+  modeLabel: { color: COLORS.warning, fontSize: 18, fontWeight: '800', letterSpacing: 2 },
   gridWrapper: { position: 'relative', alignItems: 'center' },
 });

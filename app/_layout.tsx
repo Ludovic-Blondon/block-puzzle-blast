@@ -32,7 +32,7 @@ export default function RootLayout() {
     <ErrorBoundary>
       <ThemeProvider>
         <View style={styles.container}>
-          <StatusBar style="light" />
+          <StatusBar style="light" backgroundColor="transparent" translucent />
           <Stack
             screenOptions={{
               headerShown: false,

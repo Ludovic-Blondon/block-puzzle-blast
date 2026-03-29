@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   backText: { color: COLORS.textSecondary, fontSize: 18, fontWeight: '700' },
-  title: { fontSize: 24, fontWeight: '900', color: COLORS.text, letterSpacing: 3 },
+  title: { fontSize: 24, fontWeight: '800', color: COLORS.text, letterSpacing: 3 },
   coinBox: {
     backgroundColor: COLORS.surface, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12,
   },

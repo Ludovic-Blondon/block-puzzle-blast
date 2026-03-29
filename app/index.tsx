@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: '900',
+    fontWeight: '800',
     color: COLORS.text,
     letterSpacing: 12,
   },
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   levelBadgeText: {
     color: COLORS.text,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   levelInfo: {
     flex: 1,
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   statStripValue: {
     color: COLORS.text,
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '800',
   },
 
   // Hero Play button
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   playButtonText: {
     color: COLORS.text,
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: 4,
   },
   playButtonSubtext: {

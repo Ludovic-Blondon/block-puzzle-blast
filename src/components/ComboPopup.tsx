@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     top: '40%',
     fontSize: 42,
-    fontWeight: '900',
+    fontWeight: '800',
     color: COLORS.accentGold,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 0, height: 2 },

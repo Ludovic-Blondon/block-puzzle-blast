@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   scoreValue: {
     color: COLORS.text,
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   coinsValue: {
     color: COLORS.accentGold,

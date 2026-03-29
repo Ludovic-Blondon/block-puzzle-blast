@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   backText: { color: COLORS.textSecondary, fontSize: 18, fontWeight: '700' },
-  title: { fontSize: 20, fontWeight: '900', color: COLORS.text, letterSpacing: 2 },
+  title: { fontSize: 20, fontWeight: '800', color: COLORS.text, letterSpacing: 2 },
   counter: { color: COLORS.accentGold, fontSize: 16, fontWeight: '800' },
   progressContainer: { paddingHorizontal: 16, marginBottom: 24 },
   progressBar: {

@@ -196,19 +196,19 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   backText: { color: COLORS.textSecondary, fontSize: 18, fontWeight: '700' },
-  modeLabel: { color: '#a855f7', fontSize: 16, fontWeight: '900', letterSpacing: 2 },
+  modeLabel: { color: '#a855f7', fontSize: 16, fontWeight: '800', letterSpacing: 2 },
   objectiveBar: {
     flexDirection: 'row', justifyContent: 'center', gap: 24, marginBottom: 8, paddingHorizontal: 16,
   },
   objectiveBox: { alignItems: 'center' },
   objectiveLabel: { color: COLORS.textMuted, fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-  objectiveValue: { color: COLORS.text, fontSize: 24, fontWeight: '900' },
+  objectiveValue: { color: COLORS.text, fontSize: 24, fontWeight: '800' },
   successText: { color: COLORS.success },
   urgentText: { color: COLORS.danger },
   successBanner: {
     backgroundColor: COLORS.success, paddingVertical: 8, marginHorizontal: 16, borderRadius: 12,
     alignItems: 'center', marginBottom: 8,
   },
-  successBannerText: { color: COLORS.text, fontSize: 16, fontWeight: '900', letterSpacing: 2 },
+  successBannerText: { color: COLORS.text, fontSize: 16, fontWeight: '800', letterSpacing: 2 },
   gridWrapper: { position: 'relative', alignItems: 'center' },
 });

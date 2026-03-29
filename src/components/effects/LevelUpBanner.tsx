@@ -69,13 +69,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     color: COLORS.accentGold,
     letterSpacing: 3,
   },
   level: {
     fontSize: 48,
-    fontWeight: '900',
+    fontWeight: '800',
     color: COLORS.text,
     marginTop: 4,
   },

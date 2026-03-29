@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { COLORS } from '../utils/colors';
 import { BLITZ_DURATION } from '../constants/config';
 
@@ -77,8 +77,8 @@ const styles = StyleSheet.create({
   timeText: {
     color: COLORS.text,
     fontSize: 20,
-    fontWeight: '900',
-    fontVariant: ['tabular-nums'],
+    fontWeight: '800',
+    ...(Platform.OS === 'ios' && { fontVariant: ['tabular-nums'] as const }),
   },
   urgentText: {
     color: COLORS.text,

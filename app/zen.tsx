@@ -140,9 +140,9 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   backText: { color: '#94a3b8', fontSize: 18, fontWeight: '700' },
-  modeLabel: { color: '#22c55e', fontSize: 18, fontWeight: '900', letterSpacing: 3 },
+  modeLabel: { color: '#22c55e', fontSize: 18, fontWeight: '800', letterSpacing: 3 },
   linesContainer: { alignItems: 'center', marginBottom: 8 },
   linesLabel: { color: '#64748b', fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-  linesValue: { color: '#22c55e', fontSize: 32, fontWeight: '900' },
+  linesValue: { color: '#22c55e', fontSize: 32, fontWeight: '800' },
   gridWrapper: { position: 'relative', alignItems: 'center' },
 });

@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   backText: { color: COLORS.textSecondary, fontSize: 18, fontWeight: '700' },
-  title: { fontSize: 20, fontWeight: '900', color: COLORS.text, letterSpacing: 2 },
+  title: { fontSize: 20, fontWeight: '800', color: COLORS.text, letterSpacing: 2 },
   tabs: {
     flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 16,
   },
@@ -107,6 +107,6 @@ const styles = StyleSheet.create({
   rank: { fontSize: 18, fontWeight: '800', color: COLORS.textSecondary, minWidth: 44 },
   topRank: { fontSize: 24 },
   scoreInfo: { flex: 1, alignItems: 'flex-end' },
-  scoreValue: { color: COLORS.text, fontSize: 20, fontWeight: '900' },
+  scoreValue: { color: COLORS.text, fontSize: 20, fontWeight: '800' },
   scoreDate: { color: COLORS.textMuted, fontSize: 11, marginTop: 2 },
 });
