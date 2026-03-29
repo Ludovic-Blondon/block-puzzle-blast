@@ -39,7 +39,13 @@
         }
       ],
       "expo-sharing",
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "extra": {
       "router": {},
