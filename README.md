@@ -116,7 +116,7 @@ game-app/
 1. [x] Animations on power-up activation (bomb explosion, line sweep, rotation)
 2. [x] Android: test and polish on physical devices
 3. [x] Accessibility (VoiceOver labels, reduced motion support)
-4. [ ] Unit tests for game logic (engine, scoring, power-ups)
+4. [x] Unit tests for game logic (engine, scoring, power-ups)
 5. [ ] Localization (FR, EN)
 
 ## License
