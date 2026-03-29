@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { COLORS } from '../../utils/colors';
 import { getTierColor } from '../../constants/achievements';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 interface AchievementToastProps {
   name: string;
@@ -11,11 +12,23 @@ interface AchievementToastProps {
 }
 
 export default function AchievementToast({ name, tier = 'bronze', visible, onDone }: AchievementToastProps) {
+  const reduceMotion = useReducedMotion();
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!visible) return;
+
+    if (reduceMotion) {
+      translateY.setValue(0);
+      opacity.setValue(1);
+      const fadeOut = Animated.sequence([
+        Animated.delay(2000),
+        Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]);
+      fadeOut.start(() => onDone?.());
+      return () => fadeOut.stop();
+    }
 
     translateY.setValue(-100);
     opacity.setValue(0);

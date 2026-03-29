@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, ViewStyle } from 'react-native';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 interface ScreenShakeProps {
   trigger: number; // Increment to trigger shake
@@ -9,11 +10,12 @@ interface ScreenShakeProps {
 }
 
 export default function ScreenShake({ trigger, intensity = 5, children, style }: ScreenShakeProps) {
+  const reduceMotion = useReducedMotion();
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (trigger === 0) return;
+    if (trigger === 0 || reduceMotion) return;
 
     const shake = Animated.sequence([
       Animated.timing(translateX, { toValue: intensity, duration: 30, useNativeDriver: true }),

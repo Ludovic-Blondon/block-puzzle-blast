@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { CELL_GAP, GRID_SIZE } from '../../constants/config';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 interface BombExplosionProps {
   cells: { row: number; col: number }[];
@@ -19,6 +20,7 @@ export default function BombExplosion({
   trigger,
   onComplete,
 }: BombExplosionProps) {
+  const reduceMotion = useReducedMotion();
   const [active, setActive] = useState(false);
   const cellAnims = useRef<{ scale: Animated.Value; opacity: Animated.Value }[]>([]);
   const shockwaveScale = useRef(new Animated.Value(0)).current;
@@ -27,6 +29,7 @@ export default function BombExplosion({
 
   useEffect(() => {
     if (trigger === 0) return;
+    if (reduceMotion) { onComplete(); return; }
 
     // Create per-cell animated values
     cellAnims.current = cells.map(() => ({

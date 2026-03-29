@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Animated } from 'react-native';
 import { COLORS } from '../utils/colors';
 import { getComboText, getStreakText } from '../game/scoring';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
 interface ComboPopupProps {
   linesCleared: number;
@@ -9,6 +10,7 @@ interface ComboPopupProps {
 }
 
 export default function ComboPopup({ linesCleared, streak }: ComboPopupProps) {
+  const reduceMotion = useReducedMotion();
   const scale = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
@@ -19,6 +21,19 @@ export default function ComboPopup({ linesCleared, streak }: ComboPopupProps) {
 
   useEffect(() => {
     if (!displayText) return;
+
+    scale.setValue(1);
+    opacity.setValue(1);
+    translateY.setValue(-20);
+
+    if (reduceMotion) {
+      const fadeOut = Animated.sequence([
+        Animated.delay(800),
+        Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]);
+      fadeOut.start();
+      return () => fadeOut.stop();
+    }
 
     scale.setValue(0);
     opacity.setValue(0);

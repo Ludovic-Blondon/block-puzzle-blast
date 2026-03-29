@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { COLORS } from '../../utils/colors';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 interface LevelUpBannerProps {
   level: number;
@@ -9,11 +10,23 @@ interface LevelUpBannerProps {
 }
 
 export default function LevelUpBanner({ level, visible, onDone }: LevelUpBannerProps) {
+  const reduceMotion = useReducedMotion();
   const scale = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!visible) return;
+
+    if (reduceMotion) {
+      scale.setValue(1);
+      opacity.setValue(1);
+      const fadeOut = Animated.sequence([
+        Animated.delay(1500),
+        Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]);
+      fadeOut.start(() => onDone?.());
+      return () => fadeOut.stop();
+    }
 
     scale.setValue(0);
     opacity.setValue(0);

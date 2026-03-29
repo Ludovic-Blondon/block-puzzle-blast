@@ -31,7 +31,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         <View style={styles.container}>
           <Text style={styles.title}>Oops!</Text>
           <Text style={styles.message}>Something went wrong.</Text>
-          <Pressable style={styles.button} onPress={this.handleReset}>
+          <Pressable style={styles.button} onPress={this.handleReset} accessibilityRole="button" accessibilityLabel="Reset application">
             <Text style={styles.buttonText}>TRY AGAIN</Text>
           </Pressable>
         </View>

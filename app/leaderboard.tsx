@@ -25,7 +25,7 @@ export default function LeaderboardScreen() {
       style={[styles.container, { paddingTop: insets.top }]}
     >
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to home">
           <Text style={styles.backText}>←</Text>
         </Pressable>
         <Text style={styles.title}>LEADERBOARD</Text>
@@ -39,6 +39,9 @@ export default function LeaderboardScreen() {
             key={mode}
             style={[styles.tab, selectedMode === mode && styles.tabActive]}
             onPress={() => setSelectedMode(mode)}
+            accessibilityRole="tab"
+            accessibilityLabel={mode + " leaderboard"}
+            accessibilityState={{ selected: selectedMode === mode }}
           >
             <Text style={[styles.tabText, selectedMode === mode && styles.tabTextActive]}>
               {MODE_CONFIGS[mode].icon} {MODE_CONFIGS[mode].name}

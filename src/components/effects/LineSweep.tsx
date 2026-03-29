@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { CELL_GAP, GRID_SIZE } from '../../constants/config';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 interface LineSweepProps {
   row: number;
@@ -17,6 +18,7 @@ export default function LineSweep({
   trigger,
   onComplete,
 }: LineSweepProps) {
+  const reduceMotion = useReducedMotion();
   const [active, setActive] = useState(false);
   const beamX = useRef(new Animated.Value(0)).current;
   const beamOpacity = useRef(new Animated.Value(0)).current;
@@ -24,6 +26,7 @@ export default function LineSweep({
 
   useEffect(() => {
     if (trigger === 0) return;
+    if (reduceMotion) { onComplete(); return; }
 
     // Create per-cell values
     cellAnims.current = Array.from({ length: GRID_SIZE }, () => ({

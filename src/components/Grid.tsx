@@ -49,6 +49,8 @@ const Grid = forwardRef<View, GridProps>(function Grid({
         },
       ]}
       onLayout={onLayout}
+      accessible={true}
+      accessibilityLabel="Game grid, 10 by 10"
     >
       {grid.map((row, rowIndex) => (
         <View key={rowIndex} style={styles.row}>

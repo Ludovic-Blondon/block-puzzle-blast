@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text } from 'react-native';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 interface ScoreFlyUpProps {
   points: number;
@@ -8,6 +9,7 @@ interface ScoreFlyUpProps {
 }
 
 export default function ScoreFlyUp({ points, trigger, color = '#fbbf24' }: ScoreFlyUpProps) {
+  const reduceMotion = useReducedMotion();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.5)).current;
@@ -17,8 +19,18 @@ export default function ScoreFlyUp({ points, trigger, color = '#fbbf24' }: Score
 
     opacity.setValue(1);
     translateY.setValue(0);
-    scale.setValue(0.5);
+    scale.setValue(1);
 
+    if (reduceMotion) {
+      const fadeOut = Animated.sequence([
+        Animated.delay(500),
+        Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]);
+      fadeOut.start();
+      return () => fadeOut.stop();
+    }
+
+    scale.setValue(0.5);
     const animation = Animated.parallel([
       Animated.timing(translateY, { toValue: -80, duration: 1000, useNativeDriver: true }),
       Animated.sequence([

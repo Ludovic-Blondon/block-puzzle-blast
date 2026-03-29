@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 interface Particle {
   id: number;
@@ -20,10 +21,11 @@ interface ParticleSystemProps {
 let particleIdCounter = 0;
 
 export default function ParticleSystem({ origin, colors, count = 12, trigger }: ParticleSystemProps) {
+  const reduceMotion = useReducedMotion();
   const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
-    if (trigger === 0) return;
+    if (trigger === 0 || reduceMotion) return;
 
     const newParticles: Particle[] = [];
     for (let i = 0; i < count; i++) {

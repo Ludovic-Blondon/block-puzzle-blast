@@ -86,7 +86,7 @@ export default function TutorialScreen() {
     >
       {/* Skip button */}
       <View style={styles.topBar}>
-        <Pressable onPress={handleSkip}>
+        <Pressable onPress={handleSkip} accessibilityRole="button" accessibilityLabel="Skip tutorial">
           <Text style={styles.skipText}>Skip</Text>
         </Pressable>
       </View>
@@ -105,7 +105,7 @@ export default function TutorialScreen() {
       </View>
 
       {/* Next button */}
-      <Pressable style={styles.nextButton} onPress={handleNext}>
+      <Pressable style={styles.nextButton} onPress={handleNext} accessibilityRole="button" accessibilityLabel="Next step">
         <Text style={styles.nextText}>
           {step === STEPS.length - 1 ? 'START PLAYING' : 'NEXT'}
         </Text>

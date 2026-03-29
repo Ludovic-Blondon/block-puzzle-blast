@@ -204,7 +204,7 @@ export default function BlitzScreen() {
       )}
 
       <View style={styles.topBar}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close game">
           <Text style={styles.backText}>✕</Text>
         </Pressable>
         <Text style={styles.modeLabel}>BLITZ</Text>

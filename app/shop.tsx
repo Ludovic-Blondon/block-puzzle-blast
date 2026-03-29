@@ -55,7 +55,7 @@ export default function ShopScreen() {
       style={[styles.container, { paddingTop: insets.top }]}
     >
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to home">
           <Text style={styles.backText}>←</Text>
         </Pressable>
         <Text style={styles.title}>SHOP</Text>
@@ -69,12 +69,18 @@ export default function ShopScreen() {
         <Pressable
           style={[styles.tab, tab === 'powerups' && styles.tabActive]}
           onPress={() => setTab('powerups')}
+          accessibilityRole="tab"
+          accessibilityLabel="Power-ups tab"
+          accessibilityState={{ selected: tab === 'powerups' }}
         >
           <Text style={[styles.tabText, tab === 'powerups' && styles.tabTextActive]}>Power-ups</Text>
         </Pressable>
         <Pressable
           style={[styles.tab, tab === 'themes' && styles.tabActive]}
           onPress={() => setTab('themes')}
+          accessibilityRole="tab"
+          accessibilityLabel="Themes tab"
+          accessibilityState={{ selected: tab === 'themes' }}
         >
           <Text style={[styles.tabText, tab === 'themes' && styles.tabTextActive]}>Themes</Text>
         </Pressable>
@@ -102,6 +108,8 @@ export default function ShopScreen() {
                 style={[styles.buyButton, !canAfford && styles.buyButtonDisabled]}
                 onPress={() => handleBuyPowerUp(item.type)}
                 disabled={!canAfford}
+                accessibilityRole="button"
+                accessibilityLabel={"Buy " + item.name + " for " + cost + " coins"}
               >
                 <Text style={[styles.buyText, !canAfford && styles.buyTextDisabled]}>
                   {cost} coins
@@ -142,7 +150,7 @@ export default function ShopScreen() {
 
               {owned ? (
                 !isActive ? (
-                  <Pressable style={styles.selectButton} onPress={() => handleSelectTheme(theme.id)}>
+                  <Pressable style={styles.selectButton} onPress={() => handleSelectTheme(theme.id)} accessibilityRole="button" accessibilityLabel={"Select " + theme.name + " theme"}>
                     <Text style={styles.selectText}>USE</Text>
                   </Pressable>
                 ) : null
@@ -151,6 +159,8 @@ export default function ShopScreen() {
                   style={[styles.buyButton, (!canAfford || levelLocked) && styles.buyButtonDisabled]}
                   onPress={() => handleBuyTheme(theme.id)}
                   disabled={!canAfford || !!levelLocked}
+                  accessibilityRole="button"
+                  accessibilityLabel={"Buy " + theme.name + " theme for " + theme.price + " coins"}
                 >
                   <Text style={[styles.buyText, (!canAfford || levelLocked) && styles.buyTextDisabled]}>
                     {theme.price === 0 ? 'FREE' : `${theme.price} coins`}

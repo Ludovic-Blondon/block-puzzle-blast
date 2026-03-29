@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 interface RotateSpinProps {
   trigger: number;
@@ -9,10 +10,12 @@ interface RotateSpinProps {
 }
 
 export default function RotateSpin({ trigger, onMidpoint, onComplete, children }: RotateSpinProps) {
+  const reduceMotion = useReducedMotion();
   const rotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (trigger === 0) return;
+    if (reduceMotion) { onMidpoint(); onComplete(); return; }
 
     rotation.setValue(0);
 

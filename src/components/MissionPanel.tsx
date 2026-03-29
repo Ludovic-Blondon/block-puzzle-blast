@@ -49,7 +49,7 @@ export default function MissionPanel() {
           </Text>
         </View>
         {complete && !m.claimed ? (
-          <Pressable style={styles.claimButton} onPress={() => handleClaim(m.id, type)}>
+          <Pressable style={styles.claimButton} onPress={() => handleClaim(m.id, type)} accessibilityRole="button" accessibilityLabel="Claim mission reward">
             <Text style={styles.claimText}>+{def.rewardCoins}</Text>
           </Pressable>
         ) : m.claimed ? (
