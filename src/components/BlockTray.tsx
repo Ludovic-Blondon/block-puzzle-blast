@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { View, StyleSheet, PanResponder, Animated, PixelRatio } from 'react-native';
 import { GamePiece } from '../store/gameStore';
 import BlockPiece from './BlockPiece';
+import RotateSpin from './effects/RotateSpin';
 import { hapticLight, hapticMedium } from '../utils/haptics';
 
 interface BlockTrayProps {
@@ -11,6 +12,10 @@ interface BlockTrayProps {
   onDragEnd?: (pieceIndex: number, x: number, y: number) => void;
   onDragCancel?: (pieceIndex: number) => void;
   onPieceTap?: (pieceIndex: number) => void;
+  rotateAnimTrigger?: number;
+  rotateAnimPieceIndex?: number;
+  onRotateMidpoint?: () => void;
+  onRotateComplete?: () => void;
 }
 
 const TRAY_PIECE_SIZE = 18;
@@ -24,6 +29,9 @@ function DraggablePiece({
   onDragEnd,
   onDragCancel,
   onPieceTap,
+  rotateAnimTrigger,
+  onRotateMidpoint,
+  onRotateComplete,
 }: {
   gamePiece: GamePiece;
   index: number;
@@ -32,6 +40,9 @@ function DraggablePiece({
   onDragEnd?: (pieceIndex: number, x: number, y: number) => void;
   onDragCancel?: (pieceIndex: number) => void;
   onPieceTap?: (pieceIndex: number) => void;
+  rotateAnimTrigger?: number;
+  onRotateMidpoint?: () => void;
+  onRotateComplete?: () => void;
 }) {
   const pan = useRef(new Animated.ValueXY()).current;
   const scale = useRef(new Animated.Value(1)).current;
@@ -105,11 +116,13 @@ function DraggablePiece({
       ]}
       {...panResponder.panHandlers}
     >
-      <BlockPiece
-        piece={gamePiece.piece}
-        colorIndex={gamePiece.colorIndex}
-        cellSize={TRAY_PIECE_SIZE}
-      />
+      {rotateAnimTrigger && rotateAnimTrigger > 0 && onRotateMidpoint && onRotateComplete ? (
+        <RotateSpin trigger={rotateAnimTrigger} onMidpoint={onRotateMidpoint} onComplete={onRotateComplete}>
+          <BlockPiece piece={gamePiece.piece} colorIndex={gamePiece.colorIndex} cellSize={TRAY_PIECE_SIZE} />
+        </RotateSpin>
+      ) : (
+        <BlockPiece piece={gamePiece.piece} colorIndex={gamePiece.colorIndex} cellSize={TRAY_PIECE_SIZE} />
+      )}
     </Animated.View>
   );
 }
@@ -121,6 +134,10 @@ export default function BlockTray({
   onDragEnd,
   onDragCancel,
   onPieceTap,
+  rotateAnimTrigger,
+  rotateAnimPieceIndex,
+  onRotateMidpoint,
+  onRotateComplete,
 }: BlockTrayProps) {
   return (
     <View style={styles.tray}>
@@ -128,6 +145,8 @@ export default function BlockTray({
         if (!gamePiece) {
           return <View key={index} style={styles.emptySlot} />;
         }
+
+        const isRotateTarget = index === rotateAnimPieceIndex;
 
         return (
           <DraggablePiece
@@ -139,6 +158,9 @@ export default function BlockTray({
             onDragEnd={onDragEnd}
             onDragCancel={onDragCancel}
             onPieceTap={onPieceTap}
+            rotateAnimTrigger={isRotateTarget ? rotateAnimTrigger : undefined}
+            onRotateMidpoint={isRotateTarget ? onRotateMidpoint : undefined}
+            onRotateComplete={isRotateTarget ? onRotateComplete : undefined}
           />
         );
       })}

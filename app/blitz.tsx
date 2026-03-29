@@ -22,6 +22,9 @@ import AchievementToast from '../src/components/effects/AchievementToast';
 import { hapticSuccess, hapticError, hapticHeavy } from '../src/utils/haptics';
 import { PowerUpType } from '../src/constants/config';
 import { soundManager } from '../src/audio/SoundManager';
+import { usePowerUpAnimation } from '../src/hooks/usePowerUpAnimation';
+import BombExplosion from '../src/components/effects/BombExplosion';
+import LineSweep from '../src/components/effects/LineSweep';
 
 export default function BlitzScreen() {
   const { width: screenWidth } = useWindowDimensions();
@@ -174,19 +177,22 @@ export default function BlitzScreen() {
     setActivePowerUp(activePowerUp === type ? null : type);
   };
 
-  const handleGridCellPress = useCallback((row: number, col: number) => {
-    if (activePowerUp === 'bomb' && usePowerUp('bomb')) {
-      applyBombToGrid(row, col); setActivePowerUp(null); soundManager.play('powerUp');
-    } else if (activePowerUp === 'clearLine' && usePowerUp('clearLine')) {
-      applyClearLineToGrid(row); setActivePowerUp(null); soundManager.play('powerUp');
-    }
-  }, [activePowerUp, usePowerUp, applyBombToGrid, applyClearLineToGrid]);
-
-  const handlePieceTap = useCallback((pieceIndex: number) => {
-    if (activePowerUp === 'rotate' && usePowerUp('rotate')) {
-      rotatePieceInTray(pieceIndex); setActivePowerUp(null); soundManager.play('powerUp');
-    }
-  }, [activePowerUp, usePowerUp, rotatePieceInTray]);
+  const {
+    animating,
+    bombAnimTrigger, bombAnimData, onBombComplete,
+    lineAnimTrigger, lineAnimData, onLineComplete,
+    rotateAnimTrigger, rotateAnimData, onRotateMidpoint, onRotateComplete,
+    handleGridCellPress, handlePieceTap,
+  } = usePowerUpAnimation({
+    grid,
+    activePowerUp,
+    setActivePowerUp,
+    usePowerUp,
+    applyBombToGrid,
+    applyClearLineToGrid,
+    rotatePieceInTray,
+    setShakeTrigger,
+  });
 
   return (
     <LinearGradient
@@ -213,7 +219,26 @@ export default function BlitzScreen() {
           <Grid ref={gridViewRef} grid={grid} ghostCells={ghostCells} ghostValid={ghostValid}
             clearingRows={lastClearResult?.clearedRows} clearingCols={lastClearResult?.clearedCols}
             onLayout={handleGridLayout} gridSize={gridContainerSize}
-            onCellPress={activePowerUp === 'bomb' || activePowerUp === 'clearLine' ? handleGridCellPress : undefined} />
+            onCellPress={!animating && (activePowerUp === 'bomb' || activePowerUp === 'clearLine') ? handleGridCellPress : undefined} />
+          {bombAnimData && (
+            <BombExplosion
+              cells={bombAnimData.cells}
+              centerRow={bombAnimData.centerRow}
+              centerCol={bombAnimData.centerCol}
+              cellSize={(gridContainerSize - CELL_GAP * (GRID_SIZE + 1)) / GRID_SIZE}
+              trigger={bombAnimTrigger}
+              onComplete={onBombComplete}
+            />
+          )}
+          {lineAnimData && (
+            <LineSweep
+              row={lineAnimData.row}
+              cellSize={(gridContainerSize - CELL_GAP * (GRID_SIZE + 1)) / GRID_SIZE}
+              gridWidth={gridContainerSize}
+              trigger={lineAnimTrigger}
+              onComplete={onLineComplete}
+            />
+          )}
           <ScoreFlyUp points={lastPoints} trigger={scoreFlyTrigger} />
           {lastClearResult && lastClearResult.linesCleared >= 2 && (
             <ComboPopup linesCleared={lastClearResult.linesCleared} streak={streak} />
@@ -223,7 +248,9 @@ export default function BlitzScreen() {
 
       <PowerUpBar powerUps={powerUps} activePowerUp={activePowerUp} onSelect={handlePowerUpSelect} />
       <BlockTray pieces={currentPieces} onDragMove={handleDragMove} onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel} onPieceTap={activePowerUp === 'rotate' ? handlePieceTap : undefined} />
+        onDragCancel={handleDragCancel} onPieceTap={!animating && activePowerUp === 'rotate' ? handlePieceTap : undefined}
+        rotateAnimTrigger={rotateAnimTrigger} rotateAnimPieceIndex={rotateAnimData?.pieceIndex ?? -1}
+        onRotateMidpoint={onRotateMidpoint} onRotateComplete={onRotateComplete} />
 
       <GameOverModal visible={isGameOver} score={score} bestScore={Math.max(bestScoreBlitz, score)}
         isNewBest={score > bestScoreBlitz} coinsEarned={totalCoinsEarned} modeName="Blitz"

@@ -17,11 +17,14 @@ import GameOverModal from '../src/components/GameOverModal';
 import PowerUpBar from '../src/components/PowerUpBar';
 import ScreenShake from '../src/components/effects/ScreenShake';
 import ScoreFlyUp from '../src/components/effects/ScoreFlyUp';
+import BombExplosion from '../src/components/effects/BombExplosion';
+import LineSweep from '../src/components/effects/LineSweep';
 import LevelUpBanner from '../src/components/effects/LevelUpBanner';
 import AchievementToast from '../src/components/effects/AchievementToast';
 import { hapticSuccess, hapticError, hapticHeavy } from '../src/utils/haptics';
 import { PowerUpType } from '../src/constants/config';
 import { soundManager } from '../src/audio/SoundManager';
+import { usePowerUpAnimation } from '../src/hooks/usePowerUpAnimation';
 
 export default function GameScreen() {
   const { width: screenWidth } = useWindowDimensions();
@@ -259,37 +262,22 @@ export default function GameScreen() {
     }
   };
 
-  const handleGridCellPress = useCallback(
-    (row: number, col: number) => {
-      if (activePowerUp === 'bomb') {
-        if (usePowerUp('bomb')) {
-          applyBombToGrid(row, col);
-          setActivePowerUp(null);
-          soundManager.play('powerUp');
-        }
-      } else if (activePowerUp === 'clearLine') {
-        if (usePowerUp('clearLine')) {
-          applyClearLineToGrid(row);
-          setActivePowerUp(null);
-          soundManager.play('powerUp');
-        }
-      }
-    },
-    [activePowerUp, usePowerUp, applyBombToGrid, applyClearLineToGrid]
-  );
-
-  const handlePieceTap = useCallback(
-    (pieceIndex: number) => {
-      if (activePowerUp === 'rotate') {
-        if (usePowerUp('rotate')) {
-          rotatePieceInTray(pieceIndex);
-          setActivePowerUp(null);
-          soundManager.play('powerUp');
-        }
-      }
-    },
-    [activePowerUp, usePowerUp, rotatePieceInTray]
-  );
+  const {
+    animating,
+    bombAnimTrigger, bombAnimData, onBombComplete,
+    lineAnimTrigger, lineAnimData, onLineComplete,
+    rotateAnimTrigger, rotateAnimData, onRotateMidpoint, onRotateComplete,
+    handleGridCellPress, handlePieceTap,
+  } = usePowerUpAnimation({
+    grid,
+    activePowerUp,
+    setActivePowerUp,
+    usePowerUp,
+    applyBombToGrid,
+    applyClearLineToGrid,
+    rotatePieceInTray,
+    setShakeTrigger,
+  });
 
   return (
     <LinearGradient
@@ -338,8 +326,29 @@ export default function GameScreen() {
             clearingCols={lastClearResult?.clearedCols}
             onLayout={handleGridLayout}
             gridSize={gridContainerSize}
-            onCellPress={activePowerUp === 'bomb' || activePowerUp === 'clearLine' ? handleGridCellPress : undefined}
+            onCellPress={!animating && (activePowerUp === 'bomb' || activePowerUp === 'clearLine') ? handleGridCellPress : undefined}
           />
+
+          {/* Power-up animations */}
+          {bombAnimData && (
+            <BombExplosion
+              cells={bombAnimData.cells}
+              centerRow={bombAnimData.centerRow}
+              centerCol={bombAnimData.centerCol}
+              cellSize={(gridContainerSize - CELL_GAP * (GRID_SIZE + 1)) / GRID_SIZE}
+              trigger={bombAnimTrigger}
+              onComplete={onBombComplete}
+            />
+          )}
+          {lineAnimData && (
+            <LineSweep
+              row={lineAnimData.row}
+              cellSize={(gridContainerSize - CELL_GAP * (GRID_SIZE + 1)) / GRID_SIZE}
+              gridWidth={gridContainerSize}
+              trigger={lineAnimTrigger}
+              onComplete={onLineComplete}
+            />
+          )}
 
           {/* Score fly-up */}
           <ScoreFlyUp points={lastPoints} trigger={scoreFlyTrigger} />
@@ -367,7 +376,11 @@ export default function GameScreen() {
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
-        onPieceTap={activePowerUp === 'rotate' ? handlePieceTap : undefined}
+        onPieceTap={!animating && activePowerUp === 'rotate' ? handlePieceTap : undefined}
+        rotateAnimTrigger={rotateAnimTrigger}
+        rotateAnimPieceIndex={rotateAnimData?.pieceIndex ?? -1}
+        onRotateMidpoint={onRotateMidpoint}
+        onRotateComplete={onRotateComplete}
       />
 
       {/* Game Over Modal */}

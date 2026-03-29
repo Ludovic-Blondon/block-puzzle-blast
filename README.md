@@ -105,14 +105,19 @@ game-app/
 
 ## Roadmap
 
-- [ ] Sound effects (place, clear, combo, game over) via `expo-av`
-- [ ] Unit tests for game logic (engine, scoring, power-ups)
-- [ ] Animations on power-up activation (bomb explosion, line sweep, rotation)
-- [ ] Leaderboard (local or online)
-- [ ] Theming / color palette selector
-- [ ] Accessibility (VoiceOver labels, reduced motion support)
-- [ ] Localization (FR, EN)
-- [ ] Android: test and polish on physical devices
+### Done
+
+- [x] Sound effects (place, clear, combo, game over) via `expo-audio`
+- [x] Leaderboard (local, multi-mode: Classic / Blitz / Daily)
+- [x] Theming / color palette selector (8 themes, shop integration)
+
+### Next up (by priority)
+
+1. [x] Animations on power-up activation (bomb explosion, line sweep, rotation)
+2. [ ] Android: test and polish on physical devices
+3. [ ] Accessibility (VoiceOver labels, reduced motion support)
+4. [ ] Unit tests for game logic (engine, scoring, power-ups)
+5. [ ] Localization (FR, EN)
 
 ## License
 
