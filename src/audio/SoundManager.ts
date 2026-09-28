@@ -1,4 +1,4 @@
-import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
+import { AudioPlayer, createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import { Platform } from 'react-native';
 
 type SoundName =
@@ -32,6 +32,8 @@ const VOLUMES: Partial<Record<SoundName, number>> = {
 class SoundManager {
   private enabled = true;
   private initialized = false;
+  // One reusable player per sound: createAudioPlayer() is never released automatically
+  private players: Partial<Record<SoundName, AudioPlayer>> = {};
 
   async init() {
     if (this.initialized) return;
@@ -39,6 +41,11 @@ class SoundManager {
       await setAudioModeAsync(
         Platform.OS === 'ios' ? { playsInSilentMode: false } : {}
       );
+      for (const name of Object.keys(SOUND_ASSETS) as SoundName[]) {
+        const player = createAudioPlayer(SOUND_ASSETS[name]);
+        player.volume = VOLUMES[name] ?? 0.5;
+        this.players[name] = player;
+      }
       this.initialized = true;
     } catch {
       // Native module not available
@@ -58,11 +65,10 @@ class SoundManager {
     if (!this.enabled || !this.initialized) return;
 
     try {
-      const source = SOUND_ASSETS[name];
-      if (!source) return;
+      const player = this.players[name];
+      if (!player) return;
 
-      const player = createAudioPlayer(source);
-      player.volume = VOLUMES[name] ?? 0.5;
+      player.seekTo(0);
       player.play();
     } catch {
       // Silently fail

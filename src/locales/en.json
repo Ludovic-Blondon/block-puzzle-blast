@@ -80,7 +80,8 @@
     "coinsEarned": "Coins Earned",
     "playAgain": "PLAY AGAIN",
     "share": "SHARE",
-    "home": "HOME"
+    "home": "HOME",
+    "shareMessage": "Score: {{score}} in {{mode}} mode on {{app}}. Can you beat it?"
   },
   "dailyReward": {
     "title": "DAILY REWARD",
@@ -118,7 +119,8 @@
     "unstoppable": "UNSTOPPABLE!"
   },
   "toast": {
-    "achievementUnlocked": "Achievement Unlocked!"
+    "achievementUnlocked": "Achievement Unlocked!",
+    "levelUp": "LEVEL UP!"
   },
   "backToHome": "Back to home",
   "modes": {
@@ -258,5 +260,10 @@
     "w_lines_50": "Clear 50 lines",
     "w_powerup_5": "Use 5 power-ups",
     "w_games_10": "Play 10 games"
+  },
+  "error": {
+    "title": "Oops!",
+    "message": "Something went wrong.",
+    "retry": "TRY AGAIN"
   }
 }

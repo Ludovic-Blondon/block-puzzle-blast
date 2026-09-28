@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { BLOCK_COLORS, COLORS } from '../utils/colors';
+import { COLORS } from '../utils/colors';
+import { useTheme } from '../utils/ThemeContext';
 import { PieceShape } from '../game/pieces';
 
 interface BlockPieceProps {
@@ -16,7 +17,8 @@ function BlockPiece({
   cellSize = 20,
   opacity = 1,
 }: BlockPieceProps) {
-  const color = BLOCK_COLORS[(colorIndex - 1) % BLOCK_COLORS.length];
+  const { blockColors } = useTheme();
+  const color = blockColors[(colorIndex - 1) % blockColors.length];
 
   return (
     <View style={[styles.piece, { opacity }]}>

@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { COLORS } from '../utils/colors';
+import i18n from '../locales/i18n';
 
 interface Props {
   children: React.ReactNode;
@@ -29,10 +30,10 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>Oops!</Text>
-          <Text style={styles.message}>Something went wrong.</Text>
-          <Pressable style={styles.button} onPress={this.handleReset} accessibilityRole="button" accessibilityLabel="Reset application">
-            <Text style={styles.buttonText}>TRY AGAIN</Text>
+          <Text style={styles.title}>{i18n.t('error.title')}</Text>
+          <Text style={styles.message}>{i18n.t('error.message')}</Text>
+          <Pressable style={styles.button} onPress={this.handleReset} accessibilityRole="button" accessibilityLabel={i18n.t('error.retry')}>
+            <Text style={styles.buttonText}>{i18n.t('error.retry')}</Text>
           </Pressable>
         </View>
       );

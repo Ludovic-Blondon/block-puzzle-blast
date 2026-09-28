@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, Animated } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, Animated, Share } from 'react-native';
+import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../utils/colors';
-import * as Sharing from 'expo-sharing';
 
 interface GameOverModalProps {
   visible: boolean;
@@ -13,7 +13,6 @@ interface GameOverModalProps {
   modeName?: string;
   onPlayAgain: () => void;
   onGoHome: () => void;
-  onShare?: () => void;
 }
 
 export default function GameOverModal({
@@ -22,12 +21,13 @@ export default function GameOverModal({
   bestScore,
   isNewBest,
   coinsEarned,
-  modeName = 'Classic',
+  modeName,
   onPlayAgain,
   onGoHome,
-  onShare,
 }: GameOverModalProps) {
   const { t } = useTranslation();
+  const classicName = t('game.classic');
+  const mode = modeName ?? classicName;
   const slideAnim = useRef(new Animated.Value(300)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -46,13 +46,13 @@ export default function GameOverModal({
 
   const handleShare = async () => {
     try {
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (!isAvailable) return;
-
-      // Generate a shareable text for now (image gen can be added later with view-shot)
-      if (onShare) {
-        onShare();
-      }
+      await Share.share({
+        message: t('gameOver.shareMessage', {
+          score: score.toLocaleString(),
+          mode,
+          app: Constants.expoConfig?.name ?? 'Block Puzzle Blast',
+        }),
+      });
     } catch {
       // Sharing not available
     }
@@ -63,7 +63,7 @@ export default function GameOverModal({
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
         <Animated.View style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.title}>{t('gameOver.title')}</Text>
-          {modeName !== 'Classic' && <Text style={styles.modeLabel}>{modeName}</Text>}
+          {mode !== classicName && <Text style={styles.modeLabel}>{mode}</Text>}
 
           {isNewBest && <Text style={styles.newBest}>{t('gameOver.newBest')}</Text>}
 

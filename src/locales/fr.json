@@ -80,7 +80,8 @@
     "coinsEarned": "Pièces gagnées",
     "playAgain": "REJOUER",
     "share": "PARTAGER",
-    "home": "ACCUEIL"
+    "home": "ACCUEIL",
+    "shareMessage": "Score : {{score}} en mode {{mode}} sur {{app}}. Tu peux faire mieux ?"
   },
   "dailyReward": {
     "title": "RÉCOMPENSE DU JOUR",
@@ -118,7 +119,8 @@
     "unstoppable": "UNSTOPPABLE!"
   },
   "toast": {
-    "achievementUnlocked": "Succès débloqué !"
+    "achievementUnlocked": "Succès débloqué !",
+    "levelUp": "NIVEAU SUPÉRIEUR !"
   },
   "backToHome": "Retour à l'accueil",
   "modes": {
@@ -258,5 +260,10 @@
     "w_lines_50": "Efface 50 lignes",
     "w_powerup_5": "Utilise 5 bonus",
     "w_games_10": "Joue 10 parties"
+  },
+  "error": {
+    "title": "Oups !",
+    "message": "Une erreur est survenue.",
+    "retry": "RÉESSAYER"
   }
 }

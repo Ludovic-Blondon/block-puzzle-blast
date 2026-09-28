@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { usePlayerStore } from '../store/playerStore';
 import { getThemeById, Theme } from '../constants/themes';
 import { COLORS, BLOCK_COLORS } from './colors';
@@ -34,30 +34,33 @@ const ThemeContext = createContext<ThemeColors>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const activeThemeId = usePlayerStore((s) => s.activeTheme);
-  const theme = getThemeById(activeThemeId);
 
-  const colors: ThemeColors = {
-    background: theme.background,
-    backgroundLight: theme.backgroundLight,
-    surface: theme.surface,
-    surfaceLight: theme.surfaceLight,
-    grid: theme.grid,
-    cellEmpty: theme.cellEmpty,
-    blockColors: theme.blockColors,
-    accent: theme.accent,
-    // Static colors
-    text: COLORS.text,
-    textSecondary: COLORS.textSecondary,
-    textMuted: COLORS.textMuted,
-    accentGold: COLORS.accentGold,
-    success: COLORS.success,
-    warning: COLORS.warning,
-    danger: COLORS.danger,
-    ghostValid: COLORS.ghostValid,
-    ghostInvalid: COLORS.ghostInvalid,
-    overlay: COLORS.overlay,
-    gridLine: COLORS.gridLine,
-  };
+  // Memoized so the 100 grid cells only re-render when the theme actually changes
+  const colors = useMemo<ThemeColors>(() => {
+    const theme = getThemeById(activeThemeId);
+    return {
+      background: theme.background,
+      backgroundLight: theme.backgroundLight,
+      surface: theme.surface,
+      surfaceLight: theme.surfaceLight,
+      grid: theme.grid,
+      cellEmpty: theme.cellEmpty,
+      blockColors: theme.blockColors,
+      accent: theme.accent,
+      // Static colors
+      text: COLORS.text,
+      textSecondary: COLORS.textSecondary,
+      textMuted: COLORS.textMuted,
+      accentGold: COLORS.accentGold,
+      success: COLORS.success,
+      warning: COLORS.warning,
+      danger: COLORS.danger,
+      ghostValid: COLORS.ghostValid,
+      ghostInvalid: COLORS.ghostInvalid,
+      overlay: COLORS.overlay,
+      gridLine: COLORS.gridLine,
+    };
+  }, [activeThemeId]);
 
   return (
     <ThemeContext.Provider value={colors}>

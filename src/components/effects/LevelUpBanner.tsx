@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../utils/colors';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 
@@ -10,6 +11,7 @@ interface LevelUpBannerProps {
 }
 
 export default function LevelUpBanner({ level, visible, onDone }: LevelUpBannerProps) {
+  const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
   const scale = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -60,7 +62,7 @@ export default function LevelUpBanner({ level, visible, onDone }: LevelUpBannerP
       ]}
       pointerEvents="none"
     >
-      <Text style={styles.label}>LEVEL UP!</Text>
+      <Text style={styles.label}>{t('toast.levelUp')}</Text>
       <Text style={styles.level}>{level}</Text>
     </Animated.View>
   );

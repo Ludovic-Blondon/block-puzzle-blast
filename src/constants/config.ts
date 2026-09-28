@@ -29,31 +29,32 @@ export const XP_PER_POINT = 0.1; // XP earned per score point
 export const XP_BLITZ_MULTIPLIER = 1.5;
 export const XP_DAILY_BONUS = 50;
 
-export const XP_LEVELS: { level: number; xpRequired: number; title: string }[] = [
-  { level: 1, xpRequired: 0, title: 'Beginner' },
-  { level: 2, xpRequired: 100, title: 'Beginner' },
-  { level: 3, xpRequired: 250, title: 'Beginner' },
-  { level: 4, xpRequired: 500, title: 'Beginner' },
-  { level: 5, xpRequired: 800, title: 'Novice' },
-  { level: 6, xpRequired: 1200, title: 'Novice' },
-  { level: 7, xpRequired: 1700, title: 'Novice' },
-  { level: 8, xpRequired: 2300, title: 'Novice' },
-  { level: 9, xpRequired: 3000, title: 'Novice' },
-  { level: 10, xpRequired: 4000, title: 'Apprentice' },
-  { level: 15, xpRequired: 7500, title: 'Skilled' },
-  { level: 20, xpRequired: 12000, title: 'Expert' },
-  { level: 25, xpRequired: 18000, title: 'Master' },
-  { level: 30, xpRequired: 25000, title: 'Grand Master' },
-  { level: 40, xpRequired: 40000, title: 'Champion' },
-  { level: 50, xpRequired: 60000, title: 'Legend' },
-  { level: 60, xpRequired: 85000, title: 'Legend' },
-  { level: 70, xpRequired: 115000, title: 'Mythic' },
-  { level: 80, xpRequired: 150000, title: 'Mythic' },
-  { level: 90, xpRequired: 200000, title: 'Supreme' },
-  { level: 100, xpRequired: 300000, title: 'Absolute Master' },
+// titleKey is an i18n key under `levels.*`
+export const XP_LEVELS: { level: number; xpRequired: number; titleKey: string }[] = [
+  { level: 1, xpRequired: 0, titleKey: 'beginner' },
+  { level: 2, xpRequired: 100, titleKey: 'beginner' },
+  { level: 3, xpRequired: 250, titleKey: 'beginner' },
+  { level: 4, xpRequired: 500, titleKey: 'beginner' },
+  { level: 5, xpRequired: 800, titleKey: 'novice' },
+  { level: 6, xpRequired: 1200, titleKey: 'novice' },
+  { level: 7, xpRequired: 1700, titleKey: 'novice' },
+  { level: 8, xpRequired: 2300, titleKey: 'novice' },
+  { level: 9, xpRequired: 3000, titleKey: 'novice' },
+  { level: 10, xpRequired: 4000, titleKey: 'apprentice' },
+  { level: 15, xpRequired: 7500, titleKey: 'skilled' },
+  { level: 20, xpRequired: 12000, titleKey: 'expert' },
+  { level: 25, xpRequired: 18000, titleKey: 'master' },
+  { level: 30, xpRequired: 25000, titleKey: 'grandMaster' },
+  { level: 40, xpRequired: 40000, titleKey: 'champion' },
+  { level: 50, xpRequired: 60000, titleKey: 'legend' },
+  { level: 60, xpRequired: 85000, titleKey: 'legend' },
+  { level: 70, xpRequired: 115000, titleKey: 'mythic' },
+  { level: 80, xpRequired: 150000, titleKey: 'mythic' },
+  { level: 90, xpRequired: 200000, titleKey: 'supreme' },
+  { level: 100, xpRequired: 300000, titleKey: 'absoluteMaster' },
 ];
 
-export function getLevelForXP(xp: number): { level: number; title: string; xpCurrent: number; xpNext: number } {
+export function getLevelForXP(xp: number): { level: number; titleKey: string; xpCurrent: number; xpNext: number } {
   let currentLevel = XP_LEVELS[0];
   let nextLevel = XP_LEVELS[1];
 
@@ -67,7 +68,7 @@ export function getLevelForXP(xp: number): { level: number; title: string; xpCur
 
   return {
     level: currentLevel.level,
-    title: currentLevel.title,
+    titleKey: currentLevel.titleKey,
     xpCurrent: xp - currentLevel.xpRequired,
     xpNext: nextLevel.xpRequired - currentLevel.xpRequired,
   };

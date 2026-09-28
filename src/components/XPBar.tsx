@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../utils/colors';
 import { getLevelForXP } from '../constants/config';
 
@@ -8,7 +9,9 @@ interface XPBarProps {
 }
 
 export default function XPBar({ xp }: XPBarProps) {
-  const { level, title, xpCurrent, xpNext } = getLevelForXP(xp);
+  const { t } = useTranslation();
+  const { level, titleKey, xpCurrent, xpNext } = getLevelForXP(xp);
+  const title = t('levels.' + titleKey);
   const progress = xpNext > 0 ? Math.min(xpCurrent / xpNext, 1) : 1;
 
   return (

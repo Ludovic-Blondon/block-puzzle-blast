@@ -143,7 +143,7 @@ export default function HomeScreen() {
               <Text style={styles.levelBadgeText}>{levelInfo.level}</Text>
             </View>
             <View style={styles.levelInfo}>
-              <Text style={styles.levelTitle}>{levelInfo.title}</Text>
+              <Text style={styles.levelTitle}>{t('levels.' + levelInfo.titleKey)}</Text>
               <View style={styles.miniXPBar}>
                 <View style={[styles.miniXPFill, { width: `${xpProgress * 100}%` }]} />
               </View>

@@ -64,7 +64,7 @@ interface PlayerState {
 
   // Achievements
   achievements: Achievement[];
-  pendingAchievementToast: { name: string; tier: 'bronze' | 'silver' | 'gold' } | null;
+  pendingAchievementToast: { id: string; name: string; tier: 'bronze' | 'silver' | 'gold' } | null;
 
   // Themes
   ownedThemes: string[];
@@ -456,13 +456,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const state = get();
     const achievements = [...state.achievements];
     let changed = false;
-    let lastUnlocked: { name: string; tier: 'bronze' | 'silver' | 'gold' } | null = null;
+    let lastUnlocked: { id: string; name: string; tier: 'bronze' | 'silver' | 'gold' } | null = null;
 
     const unlock = (id: string) => {
       const idx = achievements.findIndex((x) => x.id === id);
       if (idx !== -1 && !achievements[idx].unlocked) {
         achievements[idx] = { ...achievements[idx], unlocked: true, unlockedAt: Date.now() };
-        lastUnlocked = { name: achievements[idx].name, tier: achievements[idx].tier || 'bronze' };
+        lastUnlocked = { id, name: achievements[idx].name, tier: achievements[idx].tier || 'bronze' };
         changed = true;
       }
     };

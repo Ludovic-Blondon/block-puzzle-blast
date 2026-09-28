@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../src/store/gameStore';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
+import { useTheme } from '../src/utils/ThemeContext';
 import { GRID_SIZE, CELL_GAP, XP_DAILY_BONUS } from '../src/constants/config';
 import { getPieceHeight, getPieceWidth } from '../src/game/pieces';
 import { canPlacePiece } from '../src/game/engine';
@@ -18,6 +19,7 @@ import { soundManager } from '../src/audio/SoundManager';
 
 export default function DailyScreen() {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const gridContainerSize = screenWidth - 32;
   const insets = useSafeAreaInsets();
@@ -125,7 +127,7 @@ export default function DailyScreen() {
 
   return (
     <LinearGradient
-      colors={[COLORS.background, COLORS.backgroundLight, COLORS.background]}
+      colors={[theme.background, theme.backgroundLight, theme.background]}
       style={[styles.container, { paddingTop: insets.top }]}
     >
       <View style={styles.topBar}>

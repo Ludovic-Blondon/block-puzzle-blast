@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
-import { COLORS, BLOCK_COLORS } from '../utils/colors';
+import { COLORS } from '../utils/colors';
+import { useTheme } from '../utils/ThemeContext';
 
 interface CellProps {
   colorIndex: number;
@@ -13,6 +14,7 @@ interface CellProps {
 function Cell({ colorIndex, size, isGhost, isGhostValid, isClearing }: CellProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
+  const theme = useTheme();
 
   const backgroundColor =
     isGhost
@@ -20,8 +22,8 @@ function Cell({ colorIndex, size, isGhost, isGhostValid, isClearing }: CellProps
         ? COLORS.ghostValid
         : COLORS.ghostInvalid
       : colorIndex > 0
-      ? BLOCK_COLORS[(colorIndex - 1) % BLOCK_COLORS.length]
-      : COLORS.cellEmpty;
+      ? theme.blockColors[(colorIndex - 1) % theme.blockColors.length]
+      : theme.cellEmpty;
 
   useEffect(() => {
     if (isClearing) {

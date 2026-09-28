@@ -8,7 +8,7 @@
     "userInterfaceStyle": "dark",
     "scheme": "block-puzzle-blast",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.blockpuzzleblast.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -38,14 +38,15 @@
           "imageWidth": 200
         }
       ],
-      "expo-sharing",
       [
         "expo-audio",
         {
           "microphonePermission": false,
-          "recordAudioAndroid": false
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "router": {},
