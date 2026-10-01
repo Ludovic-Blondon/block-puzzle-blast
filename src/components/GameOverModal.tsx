@@ -83,15 +83,15 @@ export default function GameOverModal({
             </View>
           </View>
 
-          <Pressable style={styles.playButton} onPress={onPlayAgain} accessibilityRole="button" accessibilityLabel="Play again">
+          <Pressable style={styles.playButton} onPress={onPlayAgain} accessibilityRole="button" accessibilityLabel={t('a11y.playAgain')}>
             <Text style={styles.playButtonText}>{t('gameOver.playAgain')}</Text>
           </Pressable>
 
           <View style={styles.bottomButtons}>
-            <Pressable style={styles.secondaryButton} onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share score">
+            <Pressable style={styles.secondaryButton} onPress={handleShare} accessibilityRole="button" accessibilityLabel={t('a11y.shareScore')}>
               <Text style={styles.secondaryButtonText}>{t('gameOver.share')}</Text>
             </Pressable>
-            <Pressable style={styles.secondaryButton} onPress={onGoHome} accessibilityRole="button" accessibilityLabel="Back to home">
+            <Pressable style={styles.secondaryButton} onPress={onGoHome} accessibilityRole="button" accessibilityLabel={t('backToHome')}>
               <Text style={styles.secondaryButtonText}>{t('gameOver.home')}</Text>
             </Pressable>
           </View>

@@ -72,7 +72,7 @@ export default function DailyReward({ visible, onClaim }: DailyRewardProps) {
             )}
           </View>
 
-          <Pressable style={styles.claimButton} onPress={onClaim} accessibilityRole="button" accessibilityLabel={`Claim ${todayReward.coins} coins daily reward`}>
+          <Pressable style={styles.claimButton} onPress={onClaim} accessibilityRole="button" accessibilityLabel={t('a11y.claimDailyReward', { coins: todayReward.coins })}>
             <Text style={styles.claimButtonText}>{t('dailyReward.claim')}</Text>
           </Pressable>
         </Animated.View>

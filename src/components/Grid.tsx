@@ -1,5 +1,6 @@
 import React, { useMemo, forwardRef } from 'react';
 import { View, StyleSheet, LayoutChangeEvent, Pressable, useWindowDimensions } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { GRID_SIZE, CELL_GAP } from '../constants/config';
 import { useTheme } from '../utils/ThemeContext';
 import { Grid as GridType } from '../game/engine';
@@ -26,6 +27,7 @@ const Grid = forwardRef<View, GridProps>(function Grid({
   gridSize: externalGridSize,
   onCellPress,
 }, ref) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const gridContainerSize = externalGridSize || screenWidth - 32;
@@ -52,7 +54,7 @@ const Grid = forwardRef<View, GridProps>(function Grid({
       ]}
       onLayout={onLayout}
       accessible={true}
-      accessibilityLabel="Game grid, 10 by 10"
+      accessibilityLabel={t('a11y.grid')}
     >
       {grid.map((row, rowIndex) => (
         <View key={rowIndex} style={styles.row}>

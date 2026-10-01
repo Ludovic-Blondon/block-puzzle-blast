@@ -29,6 +29,11 @@ export const XP_PER_POINT = 0.1; // XP earned per score point
 export const XP_BLITZ_MULTIPLIER = 1.5;
 export const XP_DAILY_BONUS = 50;
 
+// Daily challenge reward, granted once per day
+export const DAILY_CHALLENGE_COINS = 100;
+
+export const PRIVACY_POLICY_URL = 'https://github.com/Ludovic-Blondon/block-puzzle-blast/blob/main/PRIVACY_POLICY.md';
+
 // titleKey is an i18n key under `levels.*`
 export const XP_LEVELS: { level: number; xpRequired: number; titleKey: string }[] = [
   { level: 1, xpRequired: 0, titleKey: 'beginner' },

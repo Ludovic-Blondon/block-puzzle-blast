@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated, ScrollView, Linking } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
-import { MODE_CONFIGS, GameMode, getLevelForXP } from '../src/constants/config';
+import { MODE_CONFIGS, GameMode, getLevelForXP, PRIVACY_POLICY_URL } from '../src/constants/config';
 import DailyReward from '../src/components/DailyReward';
 import MissionPanel from '../src/components/MissionPanel';
 import { hapticMedium } from '../src/utils/haptics';
@@ -24,6 +24,8 @@ export default function HomeScreen() {
     canClaimDailyReward,
     claimDailyReward,
     hasCompletedTutorial,
+    soundEnabled,
+    setSoundEnabled,
   } = usePlayerStore();
   const [showDailyReward, setShowDailyReward] = useState(false);
   const [selectedMode, setSelectedMode] = useState<GameMode>('classic');
@@ -83,6 +85,17 @@ export default function HomeScreen() {
     router.push('/leaderboard');
   };
 
+  const handleToggleSound = () => {
+    hapticMedium();
+    setSoundEnabled(!soundEnabled);
+  };
+
+  const handleOpenPrivacyPolicy = () => {
+    Linking.openURL(PRIVACY_POLICY_URL).catch(() => {
+      // No browser available
+    });
+  };
+
   const handleClaimDailyReward = () => {
     claimDailyReward();
     setShowDailyReward(false);
@@ -118,7 +131,6 @@ export default function HomeScreen() {
 
   const levelInfo = getLevelForXP(xp);
   const xpProgress = levelInfo.xpNext > 0 ? Math.min(levelInfo.xpCurrent / levelInfo.xpNext, 1) : 1;
-  const selectedConfig = MODE_CONFIGS[selectedMode];
 
   return (
     <LinearGradient
@@ -134,6 +146,16 @@ export default function HomeScreen() {
         <Animated.View style={[styles.header, fadeSlideDown(headerAnim)]}>
           <Text style={styles.title}>{t('home.title')}</Text>
           <Text style={styles.titleAccent}>{t('home.subtitle')}</Text>
+          <Pressable
+            style={styles.soundButton}
+            onPress={handleToggleSound}
+            hitSlop={8}
+            accessibilityRole="switch"
+            accessibilityLabel={t('a11y.sound')}
+            accessibilityState={{ checked: soundEnabled }}
+          >
+            <Text style={styles.soundIcon}>{soundEnabled ? '🔊' : '🔇'}</Text>
+          </Pressable>
         </Animated.View>
 
         {/* Compact stat strip */}
@@ -173,7 +195,7 @@ export default function HomeScreen() {
             onPressIn={handlePlayPressIn}
             onPressOut={handlePlayPressOut}
             accessibilityRole="button"
-            accessibilityLabel={`Play ${selectedConfig.name} mode`}
+            accessibilityLabel={t('a11y.playMode', { mode: t('modes.' + selectedMode) })}
           >
             <Text style={styles.playButtonText}>{t('home.play')}</Text>
             <Text style={styles.playButtonSubtext}>{t('modes.' + selectedMode)}</Text>
@@ -201,7 +223,8 @@ export default function HomeScreen() {
                   ]}
                   onPress={() => setSelectedMode(mode)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Select ${config.name} mode`}
+                  accessibilityLabel={t('a11y.selectMode', { mode: t('modes.' + mode) })}
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <Text style={styles.modePillIcon}>{config.icon}</Text>
                   <Text style={[styles.modePillName, isSelected && { color: config.color }]}>
@@ -215,6 +238,10 @@ export default function HomeScreen() {
 
         {/* Missions */}
         <MissionPanel />
+
+        <Pressable style={styles.privacyButton} onPress={handleOpenPrivacyPolicy} accessibilityRole="link">
+          <Text style={styles.privacyText}>{t('home.privacyPolicy')}</Text>
+        </Pressable>
       </ScrollView>
 
       {/* Fixed bottom navigation bar */}
@@ -223,7 +250,7 @@ export default function HomeScreen() {
           style={({ pressed }) => [styles.navButton, pressed && styles.navButtonPressed]}
           onPress={handleShop}
           accessibilityRole="button"
-          accessibilityLabel="Open shop"
+          accessibilityLabel={t('a11y.openShop')}
         >
           <Text style={styles.navIcon}>🛒</Text>
           <Text style={styles.navText}>{t('home.shop')}</Text>
@@ -233,7 +260,7 @@ export default function HomeScreen() {
           style={({ pressed }) => [styles.navButton, pressed && styles.navButtonPressed]}
           onPress={handleAchievements}
           accessibilityRole="button"
-          accessibilityLabel="View achievements"
+          accessibilityLabel={t('a11y.viewAchievements')}
         >
           <Text style={styles.navIcon}>🏆</Text>
           <Text style={styles.navText}>{t('home.achievements')}</Text>
@@ -243,7 +270,7 @@ export default function HomeScreen() {
           style={({ pressed }) => [styles.navButton, pressed && styles.navButtonPressed]}
           onPress={handleLeaderboard}
           accessibilityRole="button"
-          accessibilityLabel="View leaderboard"
+          accessibilityLabel={t('a11y.viewLeaderboard')}
         >
           <Text style={styles.navIcon}>📊</Text>
           <Text style={styles.navText}>{t('home.scores')}</Text>
@@ -282,6 +309,34 @@ const styles = StyleSheet.create({
     letterSpacing: 6,
     marginTop: -2,
     opacity: 0.8,
+  },
+  soundButton: {
+    position: 'absolute',
+    top: 0,
+    right: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  soundIcon: {
+    fontSize: 16,
+  },
+
+  // Privacy policy link
+  privacyButton: {
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  privacyText: {
+    color: COLORS.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 
   // Compact stat strip

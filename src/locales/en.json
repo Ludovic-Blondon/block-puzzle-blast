@@ -8,7 +8,8 @@
     "gameModes": "GAME MODES",
     "shop": "SHOP",
     "achievements": "ACHIEVEMENTS",
-    "scores": "SCORES"
+    "scores": "SCORES",
+    "privacyPolicy": "Privacy policy"
   },
   "game": {
     "level": "Lv.{{level}}",
@@ -28,7 +29,13 @@
     "lines": "LINES",
     "movesLeft": "MOVES LEFT",
     "challengeComplete": "CHALLENGE COMPLETE!",
-    "mode": "Daily Challenge"
+    "mode": "Daily Challenge",
+    "rewardAlreadyClaimed": "Today's reward already claimed, play for fun!"
+  },
+  "stuck": {
+    "title": "NO ROOM LEFT!",
+    "hint": "Use a power-up to keep going",
+    "giveUp": "End game"
   },
   "shop": {
     "title": "SHOP",
@@ -265,5 +272,26 @@
     "title": "Oops!",
     "message": "Something went wrong.",
     "retry": "TRY AGAIN"
+  },
+  "a11y": {
+    "sound": "Sound",
+    "playMode": "Play {{mode}} mode",
+    "selectMode": "Select {{mode}} mode",
+    "openShop": "Open shop",
+    "viewAchievements": "View achievements",
+    "viewLeaderboard": "View leaderboard",
+    "powerUpsTab": "Power-ups tab",
+    "themesTab": "Themes tab",
+    "buyItem": "Buy {{item}} for {{cost}} coins",
+    "buyTheme": "Buy the {{theme}} theme for {{cost}} coins",
+    "useTheme": "Use the {{theme}} theme",
+    "leaderboardTab": "{{mode}} leaderboard",
+    "nextStep": "Next step",
+    "powerUp": "{{name}}, {{count}} left",
+    "grid": "Game grid, 10 by 10",
+    "claimMission": "Claim mission reward",
+    "claimDailyReward": "Claim the daily reward of {{coins}} coins",
+    "playAgain": "Play again",
+    "shareScore": "Share score"
   }
 }

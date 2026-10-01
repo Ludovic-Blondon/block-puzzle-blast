@@ -32,7 +32,7 @@ function PowerUpBar({ powerUps, activePowerUp, onSelect }: PowerUpBarProps) {
             onPress={() => count > 0 && onSelect(type)}
             disabled={count === 0}
             accessibilityRole="button"
-            accessibilityLabel={`${t(info.labelKey)}, ${count} remaining`}
+            accessibilityLabel={t('a11y.powerUp', { name: t(info.labelKey), count })}
             accessibilityState={{ selected: isActive, disabled: count === 0 }}
           >
             <Text style={styles.icon}>{info.icon}</Text>

@@ -83,7 +83,7 @@ export default function TutorialScreen() {
       </View>
 
       {/* Next button */}
-      <Pressable style={styles.nextButton} onPress={handleNext} accessibilityRole="button" accessibilityLabel="Next step">
+      <Pressable style={styles.nextButton} onPress={handleNext} accessibilityRole="button" accessibilityLabel={t('a11y.nextStep')}>
         <Text style={styles.nextText}>
           {step === STEPS.length - 1 ? t('tutorial.start') : t('tutorial.next')}
         </Text>

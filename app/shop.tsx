@@ -57,7 +57,7 @@ export default function ShopScreen() {
       style={[styles.container, { paddingTop: insets.top }]}
     >
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to home">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('backToHome')}>
           <Text style={styles.backText}>←</Text>
         </Pressable>
         <Text style={styles.title}>{t('shop.title')}</Text>
@@ -72,7 +72,7 @@ export default function ShopScreen() {
           style={[styles.tab, tab === 'powerups' && styles.tabActive]}
           onPress={() => setTab('powerups')}
           accessibilityRole="tab"
-          accessibilityLabel="Power-ups tab"
+          accessibilityLabel={t('a11y.powerUpsTab')}
           accessibilityState={{ selected: tab === 'powerups' }}
         >
           <Text style={[styles.tabText, tab === 'powerups' && styles.tabTextActive]}>{t('shop.powerUps')}</Text>
@@ -81,7 +81,7 @@ export default function ShopScreen() {
           style={[styles.tab, tab === 'themes' && styles.tabActive]}
           onPress={() => setTab('themes')}
           accessibilityRole="tab"
-          accessibilityLabel="Themes tab"
+          accessibilityLabel={t('a11y.themesTab')}
           accessibilityState={{ selected: tab === 'themes' }}
         >
           <Text style={[styles.tabText, tab === 'themes' && styles.tabTextActive]}>{t('shop.themes')}</Text>
@@ -111,7 +111,7 @@ export default function ShopScreen() {
                 onPress={() => handleBuyPowerUp(item.type)}
                 disabled={!canAfford}
                 accessibilityRole="button"
-                accessibilityLabel={"Buy " + t(item.nameKey) + " for " + cost + " coins"}
+                accessibilityLabel={t('a11y.buyItem', { item: t(item.nameKey), cost })}
               >
                 <Text style={[styles.buyText, !canAfford && styles.buyTextDisabled]}>
                   {t('shop.cost', { cost })}
@@ -152,7 +152,7 @@ export default function ShopScreen() {
 
               {owned ? (
                 !isActive ? (
-                  <Pressable style={styles.selectButton} onPress={() => handleSelectTheme(theme.id)} accessibilityRole="button" accessibilityLabel={"Select " + theme.name + " theme"}>
+                  <Pressable style={styles.selectButton} onPress={() => handleSelectTheme(theme.id)} accessibilityRole="button" accessibilityLabel={t('a11y.useTheme', { theme: t('themes.' + theme.id, { defaultValue: theme.name }) })}>
                     <Text style={styles.selectText}>{t('shop.use')}</Text>
                   </Pressable>
                 ) : null
@@ -162,7 +162,7 @@ export default function ShopScreen() {
                   onPress={() => handleBuyTheme(theme.id)}
                   disabled={!canAfford || !!levelLocked}
                   accessibilityRole="button"
-                  accessibilityLabel={"Buy " + theme.name + " theme for " + theme.price + " coins"}
+                  accessibilityLabel={t('a11y.buyTheme', { theme: t('themes.' + theme.id, { defaultValue: theme.name }), cost: theme.price })}
                 >
                   <Text style={[styles.buyText, (!canAfford || levelLocked) && styles.buyTextDisabled]}>
                     {theme.price === 0 ? t('shop.free') : t('shop.cost', { cost: theme.price })}

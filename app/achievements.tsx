@@ -27,7 +27,7 @@ export default function AchievementsScreen() {
       style={[styles.container, { paddingTop: insets.top }]}
     >
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to home">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('backToHome')}>
           <Text style={styles.backText}>←</Text>
         </Pressable>
         <Text style={styles.title}>{t('achievements.title')}</Text>

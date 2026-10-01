@@ -8,7 +8,7 @@ import { useGameStore } from '../src/store/gameStore';
 import { usePlayerStore } from '../src/store/playerStore';
 import { COLORS } from '../src/utils/colors';
 import { useTheme } from '../src/utils/ThemeContext';
-import { GRID_SIZE, CELL_GAP, XP_DAILY_BONUS } from '../src/constants/config';
+import { GRID_SIZE, CELL_GAP, DAILY_CHALLENGE_COINS } from '../src/constants/config';
 import { getPieceHeight, getPieceWidth } from '../src/game/pieces';
 import { canPlacePiece } from '../src/game/engine';
 import Grid from '../src/components/Grid';
@@ -31,14 +31,16 @@ export default function DailyScreen() {
   } = useGameStore();
 
   const {
-    addCoins, addXP, incrementGamesPlayed, addLinesCleared,
-    incrementDailyChallengesCompleted, saveData,
+    incrementGamesPlayed, addLinesCleared,
+    hasDailyChallengeRewardToday, claimDailyChallengeReward, saveData,
   } = usePlayerStore();
 
   const [ghostCells, setGhostCells] = useState<{ row: number; col: number }[]>([]);
   const [ghostValid, setGhostValid] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [challengeComplete, setChallengeComplete] = useState(false);
+  // Whether this run earned the daily reward (only the first success of the day does)
+  const [rewarded, setRewarded] = useState(false);
 
   const gridRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
   const gridViewRef = useRef<View>(null);
@@ -63,12 +65,17 @@ export default function DailyScreen() {
   useEffect(() => {
     if (dailyLinesCleared >= dailyObjective && !challengeComplete) {
       setChallengeComplete(true);
-      incrementDailyChallengesCompleted();
-      addCoins(100);
-      addXP(XP_DAILY_BONUS);
+      setRewarded(claimDailyChallengeReward());
       soundManager.play('achievement');
     }
   }, [dailyLinesCleared, dailyObjective]);
+
+  const handlePlayAgain = () => {
+    startNewGame('daily');
+    incrementGamesPlayed();
+    setChallengeComplete(false);
+    setRewarded(false);
+  };
 
   useEffect(() => {
     if (isGameOver) {
@@ -124,6 +131,7 @@ export default function DailyScreen() {
   }, []);
 
   const success = dailyLinesCleared >= dailyObjective;
+  const rewardAlreadyClaimed = !rewarded && hasDailyChallengeRewardToday();
 
   return (
     <LinearGradient
@@ -131,7 +139,7 @@ export default function DailyScreen() {
       style={[styles.container, { paddingTop: insets.top }]}
     >
       <View style={styles.topBar}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close game">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('game.close')}>
           <Text style={styles.backText}>✕</Text>
         </Pressable>
         <Text style={styles.modeLabel}>{t('daily.title')}</Text>
@@ -160,6 +168,10 @@ export default function DailyScreen() {
         </View>
       )}
 
+      {rewardAlreadyClaimed && (
+        <Text style={styles.rewardClaimedText}>{t('daily.rewardAlreadyClaimed')}</Text>
+      )}
+
       <View style={styles.gridWrapper}>
         <Grid
           ref={gridViewRef} grid={grid} ghostCells={ghostCells} ghostValid={ghostValid}
@@ -180,9 +192,9 @@ export default function DailyScreen() {
         score={dailyLinesCleared}
         bestScore={dailyObjective}
         isNewBest={success}
-        coinsEarned={success ? 100 : 0}
+        coinsEarned={rewarded ? DAILY_CHALLENGE_COINS : 0}
         modeName={t('daily.mode')}
-        onPlayAgain={() => router.back()}
+        onPlayAgain={handlePlayAgain}
         onGoHome={() => router.back()}
       />
     </LinearGradient>
@@ -214,5 +226,8 @@ const styles = StyleSheet.create({
     alignItems: 'center', marginBottom: 8,
   },
   successBannerText: { color: COLORS.text, fontSize: 16, fontWeight: '800', letterSpacing: 2 },
+  rewardClaimedText: {
+    color: COLORS.textMuted, fontSize: 12, fontWeight: '600', textAlign: 'center', marginBottom: 8,
+  },
   gridWrapper: { position: 'relative', alignItems: 'center' },
 });

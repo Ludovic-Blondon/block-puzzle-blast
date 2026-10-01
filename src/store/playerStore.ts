@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DAILY_REWARDS, PowerUpType, POWERUP_COSTS, getLevelForXP, XP_PER_POINT, GameMode } from '../constants/config';
+import {
+  DAILY_REWARDS,
+  PowerUpType,
+  POWERUP_COSTS,
+  getLevelForXP,
+  XP_PER_POINT,
+  XP_DAILY_BONUS,
+  DAILY_CHALLENGE_COINS,
+  GameMode,
+} from '../constants/config';
 import { ACHIEVEMENT_DEFINITIONS, AchievementDefinition } from '../constants/achievements';
 import { getDailyMissions, getWeeklyMissions, MissionDefinition, MissionTrackingKey } from '../constants/missions';
 import { THEMES } from '../constants/themes';
@@ -42,6 +51,7 @@ interface PlayerState {
   totalComboCount: number;
   totalScoreAccumulated: number;
   dailyChallengesCompleted: number;
+  lastDailyChallengeReward: string | null;
   zenLinesCleared: number;
 
   // XP & Level
@@ -73,6 +83,9 @@ interface PlayerState {
   // Tutorial
   hasCompletedTutorial: boolean;
 
+  // Settings
+  soundEnabled: boolean;
+
   // Leaderboard
   leaderboard: LeaderboardEntry[];
 
@@ -101,7 +114,8 @@ interface PlayerState {
   incrementPowerUpsUsed: () => void;
   incrementComboCount: () => void;
   addScoreAccumulated: (score: number) => void;
-  incrementDailyChallengesCompleted: () => void;
+  hasDailyChallengeRewardToday: () => boolean;
+  claimDailyChallengeReward: () => boolean;
   checkAchievements: () => void;
   dismissAchievementToast: () => void;
   refreshMissions: () => void;
@@ -110,6 +124,7 @@ interface PlayerState {
   buyTheme: (themeId: string) => boolean;
   setActiveTheme: (themeId: string) => void;
   completeTutorial: () => void;
+  setSoundEnabled: (enabled: boolean) => void;
   addLeaderboardEntry: (score: number, mode: GameMode) => void;
 }
 
@@ -166,6 +181,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   totalComboCount: 0,
   totalScoreAccumulated: 0,
   dailyChallengesCompleted: 0,
+  lastDailyChallengeReward: null,
   zenLinesCleared: 0,
   xp: 0,
   lastDailyReward: null,
@@ -182,6 +198,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   ownedThemes: ['default'],
   activeTheme: 'default',
   hasCompletedTutorial: false,
+  soundEnabled: true,
   leaderboard: [],
   loaded: false,
 
@@ -211,6 +228,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           totalComboCount: parsed.totalComboCount ?? 0,
           totalScoreAccumulated: parsed.totalScoreAccumulated ?? 0,
           dailyChallengesCompleted: parsed.dailyChallengesCompleted ?? 0,
+          lastDailyChallengeReward: parsed.lastDailyChallengeReward ?? null,
           zenLinesCleared: parsed.zenLinesCleared ?? 0,
           xp: parsed.xp ?? 0,
           lastDailyReward: parsed.lastDailyReward ?? null,
@@ -226,6 +244,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           ownedThemes: parsed.ownedThemes ?? ['default'],
           activeTheme: parsed.activeTheme ?? 'default',
           hasCompletedTutorial: parsed.hasCompletedTutorial ?? false,
+          soundEnabled: parsed.soundEnabled ?? true,
           leaderboard: parsed.leaderboard ?? [],
           loaded: true,
         });
@@ -259,6 +278,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           totalComboCount: s.totalComboCount,
           totalScoreAccumulated: s.totalScoreAccumulated,
           dailyChallengesCompleted: s.dailyChallengesCompleted,
+          lastDailyChallengeReward: s.lastDailyChallengeReward,
           zenLinesCleared: s.zenLinesCleared,
           xp: s.xp,
           lastDailyReward: s.lastDailyReward,
@@ -274,6 +294,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           ownedThemes: s.ownedThemes,
           activeTheme: s.activeTheme,
           hasCompletedTutorial: s.hasCompletedTutorial,
+          soundEnabled: s.soundEnabled,
           leaderboard: s.leaderboard,
         })
       );
@@ -447,9 +468,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     get().updateMissionProgress('scoreAccumulated', score);
   },
 
-  incrementDailyChallengesCompleted: () => {
-    set((state) => ({ dailyChallengesCompleted: state.dailyChallengesCompleted + 1 }));
+  hasDailyChallengeRewardToday: () => {
+    return get().lastDailyChallengeReward === getTodayStr();
+  },
+
+  // The daily challenge can be replayed, but only the first success of the day is rewarded
+  claimDailyChallengeReward: () => {
+    if (get().hasDailyChallengeRewardToday()) return false;
+    set((state) => ({
+      dailyChallengesCompleted: state.dailyChallengesCompleted + 1,
+      lastDailyChallengeReward: getTodayStr(),
+      coins: state.coins + DAILY_CHALLENGE_COINS,
+    }));
+    get().addXP(XP_DAILY_BONUS);
     get().checkAchievements();
+    return true;
   },
 
   checkAchievements: () => {
@@ -690,6 +723,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   completeTutorial: () => {
     set({ hasCompletedTutorial: true });
+    debouncedSave(() => get().saveData());
+  },
+
+  setSoundEnabled: (enabled) => {
+    set({ soundEnabled: enabled });
     debouncedSave(() => get().saveData());
   },
 

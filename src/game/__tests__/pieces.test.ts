@@ -54,6 +54,30 @@ describe('getSeededRandomPieces', () => {
     const same = a.every((p, i) => p.id === b[i].id);
     expect(same).toBe(false);
   });
+
+  it('does not repeat the same piece within a daily set', () => {
+    // Over a month of daily seeds, sets made of 3 identical pieces must stay rare
+    let uniform = 0;
+    for (let day = 1; day <= 30; day++) {
+      const seed = `2026-10-${String(day).padStart(2, '0')}`;
+      const ids = getSeededRandomPieces(seed, 0, 3).map((p) => p.id);
+      if (new Set(ids).size === 1) uniform++;
+    }
+    expect(uniform).toBeLessThanOrEqual(1);
+  });
+
+  it('varies between set indexes and between days', () => {
+    const ids = (seed: string, set: number) => getSeededRandomPieces(seed, set, 3).map((p) => p.id).join(',');
+    const sets = new Set([0, 1, 2, 3, 4].map((s) => ids('2026-10-01', s)));
+    expect(sets.size).toBeGreaterThan(1);
+    expect(ids('2026-10-01', 0)).not.toBe(ids('2026-10-02', 0));
+  });
+
+  it('only returns valid pieces', () => {
+    for (let set = 0; set < 50; set++) {
+      getSeededRandomPieces('2026-10-01', set, 3).forEach((p) => expect(PIECES).toContain(p));
+    }
+  });
 });
 
 describe('getPieceWidth / getPieceHeight', () => {

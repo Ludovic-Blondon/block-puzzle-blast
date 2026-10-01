@@ -17,6 +17,7 @@ import ScoreDisplay from '../src/components/ScoreDisplay';
 import ComboPopup from '../src/components/ComboPopup';
 import GameOverModal from '../src/components/GameOverModal';
 import PowerUpBar from '../src/components/PowerUpBar';
+import StuckBanner from '../src/components/StuckBanner';
 import ScreenShake from '../src/components/effects/ScreenShake';
 import ScoreFlyUp from '../src/components/effects/ScoreFlyUp';
 import BombExplosion from '../src/components/effects/BombExplosion';
@@ -41,11 +42,13 @@ export default function GameScreen() {
     score,
     streak,
     isGameOver,
+    isStuck,
     lastClearResult,
     lastScoreResult,
     level,
     lastLevel,
     startNewGame,
+    endGame,
     tryPlacePiece,
     applyBombToGrid,
     applyClearLineToGrid,
@@ -283,6 +286,12 @@ export default function GameScreen() {
     setShakeTrigger,
   });
 
+  // No piece fits: end the game unless a power-up can still get the player out of it
+  const powerUpsLeft = powerUps.bomb + powerUps.clearLine + powerUps.rotate;
+  useEffect(() => {
+    if (isStuck && !animating && powerUpsLeft === 0) endGame();
+  }, [isStuck, animating, powerUpsLeft]);
+
   return (
     <LinearGradient
       colors={[theme.background, theme.backgroundLight, theme.background]}
@@ -307,7 +316,7 @@ export default function GameScreen() {
 
       {/* Top bar */}
       <View style={styles.topBar}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close game">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('game.close')}>
           <Text style={styles.backText}>✕</Text>
         </Pressable>
         <View style={styles.levelBadge}>
@@ -315,8 +324,11 @@ export default function GameScreen() {
         </View>
       </View>
 
-      {/* Score */}
-      <ScoreDisplay score={score} bestScore={bestScore} coins={coins} />
+      {/* Score, covered by the stuck banner when no piece fits */}
+      <View>
+        <ScoreDisplay score={score} bestScore={bestScore} coins={coins} />
+        <StuckBanner visible={isStuck && !isGameOver && powerUpsLeft > 0} onGiveUp={endGame} />
+      </View>
 
       {/* Grid with effects */}
       <ScreenShake trigger={shakeTrigger} intensity={lastClearResult && lastClearResult.linesCleared >= 3 ? 8 : 4}>

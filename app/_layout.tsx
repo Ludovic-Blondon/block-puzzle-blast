@@ -15,11 +15,16 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const loadData = usePlayerStore((s) => s.loadData);
   const loaded = usePlayerStore((s) => s.loaded);
+  const soundEnabled = usePlayerStore((s) => s.soundEnabled);
 
   useEffect(() => {
     loadData();
     soundManager.init();
   }, []);
+
+  useEffect(() => {
+    soundManager.setEnabled(soundEnabled);
+  }, [soundEnabled]);
 
   useEffect(() => {
     if (loaded) {

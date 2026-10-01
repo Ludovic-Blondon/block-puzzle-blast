@@ -100,7 +100,7 @@ export default function ZenScreen() {
       style={[styles.container, { paddingTop: insets.top }]}
     >
       <View style={styles.topBar}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close game">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('game.close')}>
           <Text style={styles.backText}>✕</Text>
         </Pressable>
         <Text style={styles.modeLabel}>{t('zen.title')}</Text>

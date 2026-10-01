@@ -8,7 +8,8 @@
     "gameModes": "MODES DE JEU",
     "shop": "BOUTIQUE",
     "achievements": "SUCCÈS",
-    "scores": "SCORES"
+    "scores": "SCORES",
+    "privacyPolicy": "Politique de confidentialité"
   },
   "game": {
     "level": "Nv.{{level}}",
@@ -28,7 +29,13 @@
     "lines": "LIGNES",
     "movesLeft": "COUPS RESTANTS",
     "challengeComplete": "DÉFI RÉUSSI !",
-    "mode": "Défi du jour"
+    "mode": "Défi du jour",
+    "rewardAlreadyClaimed": "Récompense du jour déjà obtenue, joue pour le plaisir !"
+  },
+  "stuck": {
+    "title": "PLUS DE PLACE !",
+    "hint": "Utilise un bonus pour continuer",
+    "giveUp": "Terminer"
   },
   "shop": {
     "title": "BOUTIQUE",
@@ -265,5 +272,26 @@
     "title": "Oups !",
     "message": "Une erreur est survenue.",
     "retry": "RÉESSAYER"
+  },
+  "a11y": {
+    "sound": "Son",
+    "playMode": "Jouer en mode {{mode}}",
+    "selectMode": "Choisir le mode {{mode}}",
+    "openShop": "Ouvrir la boutique",
+    "viewAchievements": "Voir les succès",
+    "viewLeaderboard": "Voir les scores",
+    "powerUpsTab": "Onglet bonus",
+    "themesTab": "Onglet thèmes",
+    "buyItem": "Acheter {{item}} pour {{cost}} pièces",
+    "buyTheme": "Acheter le thème {{theme}} pour {{cost}} pièces",
+    "useTheme": "Utiliser le thème {{theme}}",
+    "leaderboardTab": "Scores du mode {{mode}}",
+    "nextStep": "Étape suivante",
+    "powerUp": "{{name}}, reste {{count}}",
+    "grid": "Grille de jeu, 10 sur 10",
+    "claimMission": "Récupérer la récompense de la mission",
+    "claimDailyReward": "Récupérer la récompense du jour, {{coins}} pièces",
+    "playAgain": "Rejouer",
+    "shareScore": "Partager le score"
   }
 }

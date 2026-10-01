@@ -109,21 +109,35 @@ export function getRandomPieces(count: number): PieceShape[] {
   return pieces;
 }
 
-// Seeded random for daily challenges (deterministic for same seed+index)
-function seededRandom(seed: string, index: number): number {
-  let hash = 0;
-  const str = seed + '-' + index;
+// FNV-1a 32-bit string hash
+function hashString(str: string): number {
+  let hash = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
   }
-  return Math.abs(hash) / 2147483647;
+  return hash >>> 0;
 }
 
+// mulberry32 PRNG, returns floats in [0, 1). A raw string hash is not enough here:
+// seeds that differ by one character ("…-10" / "…-11") gave nearly identical values,
+// so every daily set was the same piece three times.
+function mulberry32(seed: number): () => number {
+  let a = seed;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Seeded random for daily challenges (deterministic for same seed+index)
 export function getSeededRandomPieces(seed: string, setIndex: number, count: number): PieceShape[] {
+  const random = mulberry32(hashString(`${seed}:${setIndex}`));
   const pieces: PieceShape[] = [];
   for (let i = 0; i < count; i++) {
-    const rand = seededRandom(seed, setIndex * 10 + i);
-    pieces.push(PIECES[Math.floor(rand * PIECES.length)]);
+    pieces.push(PIECES[Math.floor(random() * PIECES.length)]);
   }
   return pieces;
 }

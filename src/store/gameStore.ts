@@ -12,7 +12,7 @@ import { PieceShape, getRandomPieces, getSeededRandomPieces } from '../game/piec
 import { calculateScore, ScoreResult } from '../game/scoring';
 import { BLOCK_COLORS } from '../utils/colors';
 import { applyBomb, applyClearRow, rotatePiece } from '../game/powerups';
-import { GameMode, BLITZ_DURATION, BLITZ_COMBO_TIME_BONUS, LEVEL_THRESHOLD } from '../constants/config';
+import { GameMode, GRID_SIZE, BLITZ_DURATION, BLITZ_COMBO_TIME_BONUS, LEVEL_THRESHOLD } from '../constants/config';
 
 export interface GamePiece {
   piece: PieceShape;
@@ -26,6 +26,8 @@ interface GameState {
   score: number;
   streak: number;
   isGameOver: boolean;
+  // Classic & Blitz: no remaining piece fits, but a power-up may still save the game
+  isStuck: boolean;
   lastClearResult: ClearResult | null;
   lastScoreResult: ScoreResult | null;
 
@@ -45,6 +47,7 @@ interface GameState {
 
   // Daily challenge
   dailySeed: string;
+  dailySetIndex: number; // Index of the current seeded piece set, same sequence for every player
   dailyMovesLeft: number;
   dailyObjective: number;
   dailyLinesCleared: number;
@@ -53,6 +56,7 @@ interface GameState {
   startNewGame: (mode?: GameMode) => void;
   tryPlacePiece: (pieceIndex: number, row: number, col: number) => boolean;
   checkGameOver: () => void;
+  endGame: () => void;
   applyBombToGrid: (row: number, col: number) => void;
   applyClearLineToGrid: (row: number) => void;
   rotatePieceInTray: (pieceIndex: number) => void;
@@ -92,6 +96,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   score: 0,
   streak: 0,
   isGameOver: false,
+  isStuck: false,
   lastClearResult: null,
   lastScoreResult: null,
 
@@ -105,6 +110,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   zenLinesCleared: 0,
 
   dailySeed: getDailySeed(),
+  dailySetIndex: 0,
   dailyMovesLeft: 15,
   dailyObjective: 8,
   dailyLinesCleared: 0,
@@ -119,6 +125,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       score: 0,
       streak: 0,
       isGameOver: false,
+      isStuck: false,
       lastClearResult: null,
       lastScoreResult: null,
       mode,
@@ -128,6 +135,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       timerRunning: mode === 'blitz',
       zenLinesCleared: 0,
       dailySeed: seed,
+      dailySetIndex: 0,
       dailyMovesLeft: 15,
       dailyObjective: 8,
       dailyLinesCleared: 0,
@@ -139,7 +147,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     placementLock = true;
 
     try {
-      const { grid, currentPieces, score, streak, mode, dailyMovesLeft, dailyLinesCleared, dailySeed, zenLinesCleared } = get();
+      const { grid, currentPieces, score, streak, mode, dailyMovesLeft, dailyLinesCleared, dailySeed, dailySetIndex, zenLinesCleared } = get();
       const gamePiece = currentPieces[pieceIndex];
       if (!gamePiece || gamePiece.placed) return false;
 
@@ -165,11 +173,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Check if all pieces placed -> generate new ones
       const allPlaced = newPieces.every((p) => p === null);
       let finalPieces: (GamePiece | null)[];
+      let nextDailySetIndex = dailySetIndex;
       if (allPlaced) {
         if (mode === 'daily') {
-          // Generate seeded pieces for consistency
-          const pieceSetIndex = Math.floor(score / 100) + 1;
-          finalPieces = generateSeededPieces(dailySeed, pieceSetIndex);
+          // Next seeded set: depends only on how many sets were drawn, not on the player's score
+          nextDailySetIndex = dailySetIndex + 1;
+          finalPieces = generateSeededPieces(dailySeed, nextDailySetIndex);
         } else {
           finalPieces = generateNewPieces();
         }
@@ -204,6 +213,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (mode === 'daily') {
         updates.dailyMovesLeft = dailyMovesLeft - 1;
         updates.dailyLinesCleared = dailyLinesCleared + clearResult.linesCleared;
+        updates.dailySetIndex = nextDailySetIndex;
       }
 
       if (mode === 'zen') {
@@ -212,8 +222,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       set(updates as any);
 
-      // Check game over after state update
-      queueMicrotask(() => get().checkGameOver());
+      // Check game over after state update (synchronously, so no render sees a stale stuck state)
+      get().checkGameOver();
 
       return true;
     } finally {
@@ -222,22 +232,23 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   checkGameOver: () => {
-    const { grid, currentPieces, mode, dailyMovesLeft, dailyObjective, dailyLinesCleared, timeRemaining } = get();
+    const { grid, currentPieces, mode, dailyMovesLeft, timeRemaining } = get();
+    if (get().isGameOver) return;
+
+    const remainingPieces = currentPieces
+      .filter((p): p is GamePiece => p !== null)
+      .map((p) => p.piece);
+    const stuck = remainingPieces.length > 0 && isGameOver(grid, remainingPieces);
 
     // Zen mode: never game over from pieces, do partial clear instead
     if (mode === 'zen') {
-      const remainingPieces = currentPieces
-        .filter((p): p is GamePiece => p !== null)
-        .map((p) => p.piece);
-      if (remainingPieces.length > 0 && isGameOver(grid, remainingPieces)) {
-        get().zenPartialClear();
-      }
+      if (stuck) get().zenPartialClear();
       return;
     }
 
-    // Daily mode: game over when no moves left
+    // Daily mode: game over when no moves left, or when no piece fits (no power-ups in this mode)
     if (mode === 'daily') {
-      if (dailyMovesLeft <= 0) {
+      if (dailyMovesLeft <= 0 || stuck) {
         set({ isGameOver: true });
       }
       return;
@@ -245,32 +256,31 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     // Blitz mode: game over when time runs out (handled by tickTimer)
     if (mode === 'blitz' && timeRemaining <= 0) {
-      set({ isGameOver: true, timerRunning: false });
+      set({ isGameOver: true, isStuck: false, timerRunning: false });
       return;
     }
 
-    // Classic & Blitz: standard game over check
-    const remainingPieces = currentPieces
-      .filter((p): p is GamePiece => p !== null)
-      .map((p) => p.piece);
+    // Classic & Blitz: the screen ends the game (endGame) once no power-up can get the player unstuck
+    set({ isStuck: stuck });
+  },
 
-    if (remainingPieces.length > 0 && isGameOver(grid, remainingPieces)) {
-      set({ isGameOver: true, timerRunning: false });
-    }
+  endGame: () => {
+    if (get().isGameOver) return;
+    set({ isGameOver: true, isStuck: false, timerRunning: false });
   },
 
   applyBombToGrid: (row, col) => {
     const { grid } = get();
     const newGrid = applyBomb(grid, row, col);
     set({ grid: newGrid });
-    queueMicrotask(() => get().checkGameOver());
+    get().checkGameOver();
   },
 
   applyClearLineToGrid: (row) => {
     const { grid } = get();
     const newGrid = applyClearRow(grid, row);
     set({ grid: newGrid });
-    queueMicrotask(() => get().checkGameOver());
+    get().checkGameOver();
   },
 
   rotatePieceInTray: (pieceIndex) => {
@@ -281,6 +291,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const newPieces = [...currentPieces];
     newPieces[pieceIndex] = { ...gamePiece, piece: rotatedPiece };
     set({ currentPieces: newPieces });
+    // A rotated piece may fit (or no longer fit)
+    get().checkGameOver();
   },
 
   tickTimer: () => {
@@ -296,12 +308,21 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   zenPartialClear: () => {
-    const { grid } = get();
-    // Clear bottom 3 rows to give player breathing room
-    const newGrid = grid.map((row, rowIndex) => {
-      if (rowIndex >= 7) return row.map(() => 0);
-      return [...row];
-    });
+    const { grid, currentPieces } = get();
+    const remainingPieces = currentPieces
+      .filter((p): p is GamePiece => p !== null)
+      .map((p) => p.piece);
+
+    // Clear bottom rows to give player breathing room: 3 rows, more if a piece
+    // still doesn't fit (a vertical 5-line needs 5 free rows in one column)
+    let newGrid = grid;
+    for (let rowsToClear = 3; rowsToClear <= GRID_SIZE; rowsToClear++) {
+      newGrid = grid.map((row, rowIndex) => {
+        if (rowIndex >= GRID_SIZE - rowsToClear) return row.map(() => 0);
+        return [...row];
+      });
+      if (!isGameOver(newGrid, remainingPieces)) break;
+    }
     set({ grid: newGrid });
   },
 }));

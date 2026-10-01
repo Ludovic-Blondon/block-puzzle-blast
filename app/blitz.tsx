@@ -17,6 +17,7 @@ import ScoreDisplay from '../src/components/ScoreDisplay';
 import ComboPopup from '../src/components/ComboPopup';
 import GameOverModal from '../src/components/GameOverModal';
 import PowerUpBar from '../src/components/PowerUpBar';
+import StuckBanner from '../src/components/StuckBanner';
 import BlitzTimer from '../src/components/BlitzTimer';
 import ScreenShake from '../src/components/effects/ScreenShake';
 import ScoreFlyUp from '../src/components/effects/ScoreFlyUp';
@@ -36,9 +37,9 @@ export default function BlitzScreen() {
   const insets = useSafeAreaInsets();
 
   const {
-    grid, currentPieces, score, streak, isGameOver,
+    grid, currentPieces, score, streak, isGameOver, isStuck,
     lastClearResult, lastScoreResult, timeRemaining, timerRunning,
-    startNewGame, tryPlacePiece, applyBombToGrid, applyClearLineToGrid,
+    startNewGame, endGame, tryPlacePiece, applyBombToGrid, applyClearLineToGrid,
     rotatePieceInTray, tickTimer,
   } = useGameStore();
 
@@ -198,6 +199,12 @@ export default function BlitzScreen() {
     setShakeTrigger,
   });
 
+  // No piece fits: end the game unless a power-up can still get the player out of it
+  const powerUpsLeft = powerUps.bomb + powerUps.clearLine + powerUps.rotate;
+  useEffect(() => {
+    if (isStuck && !animating && powerUpsLeft === 0) endGame();
+  }, [isStuck, animating, powerUpsLeft]);
+
   return (
     <LinearGradient
       colors={[theme.background, theme.backgroundLight, theme.background]}
@@ -208,7 +215,7 @@ export default function BlitzScreen() {
       )}
 
       <View style={styles.topBar}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close game">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('game.close')}>
           <Text style={styles.backText}>✕</Text>
         </Pressable>
         <Text style={styles.modeLabel}>{t('blitz.title')}</Text>
@@ -216,7 +223,10 @@ export default function BlitzScreen() {
       </View>
 
       <BlitzTimer timeRemaining={timeRemaining} />
-      <ScoreDisplay score={score} bestScore={bestScoreBlitz} coins={coins} />
+      <View>
+        <ScoreDisplay score={score} bestScore={bestScoreBlitz} coins={coins} />
+        <StuckBanner visible={isStuck && !isGameOver && powerUpsLeft > 0} onGiveUp={endGame} />
+      </View>
 
       <ScreenShake trigger={shakeTrigger} intensity={lastClearResult && lastClearResult.linesCleared >= 3 ? 8 : 4}>
         <View style={styles.gridWrapper}>
